@@ -3,10 +3,12 @@ import { AppStateProvider, useApp } from "./state.jsx";
 import Settings from "./screens/Settings.jsx";
 import Students from "./screens/Students.jsx";
 import Backup from "./screens/Backup.jsx";
+import Inputs from "./screens/Inputs.jsx";
 
 const SCREENS = {
   설정: Settings,
   학생: Students,
+  입력: Inputs,
   백업: Backup,
 };
 export const TABS = ["설정", "학생", "입력", "초안 만들기", "결과 검토", "백업"];
