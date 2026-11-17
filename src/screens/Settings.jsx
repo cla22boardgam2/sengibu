@@ -131,7 +131,7 @@ function ChipsCard() {
     update((s) => s.chips.B.some((c) => c.text === text) ? s
       : ({ ...s, chips: { ...s.chips, B: [...s.chips.B, { id: `b-${uid()}`, text }] } }));
   return (
-    <Card title="칩 목록" desc="선생님 말투에 맞게 더하거나 빼세요. 칩을 빼도 이미 고른 학생 기록은 문장 재료에서만 빠져요.">
+    <Card title="칩 목록" desc="선생님 말투에 맞게 더하거나 빼세요. 칩을 빼면 그 칩을 고른 학생의 문장 재료에서도 빠져요.">
       {CHIP_GROUPS.map((g) => (
         <ChipEditor key={g} label={`행발 · ${g}`} negative={g === "노력할 점"}
           chips={state.chips.C.filter((c) => c.group === g)} onRemove={removeC} onAdd={addC(g)} />
