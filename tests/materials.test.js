@@ -145,3 +145,14 @@ test("날짜 없는 메모만 있으면 그 메모를 관찰 기록으로 쓴다
   expect(r.student.logs).toEqual([{ date: "", text: "실험 결과를 꼼꼼히 기록함" }]);
   expect(r.student.memo).toBe("분량: 보통");
 });
+
+test("참고 자료(행사 설명 등)와 다른 항목 초안·시작 표현의 실명도 가명으로 바꾼다", () => {
+  const s = base();
+  s.activities[0].desc = "김지수가 회장으로 진행";
+  s.inputs.S02 = { acts: { a1: { joined: true, roles: {} } } };
+  s.drafts = { S02: { C: { draft: "박민은 성실함." } }, S03: { "B:동아리활동": { draft: "김지수와 함께 실험함." } } };
+  const r = buildRequest(s, "S02", "B", { area: "동아리활동" });
+  const sent = JSON.stringify(r);
+  expect(sent).not.toMatch(/김지수|박민/);
+  expect(r.extraDocs).toContain("S01가 회장으로 진행");
+});

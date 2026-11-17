@@ -53,3 +53,13 @@ test("앱이 주는 양식 파일은 머리글이 맞고 예시 2행이 읽힌�
   expect(first).toEqual(EVAL_HEADERS);
   expect(parseEvalPlanXlsx(buf).rows).toHaveLength(2);
 });
+
+test("머리글 첫 칸이 '과목'이어도 머리글로 본다", () => {
+  const text = "과목\t영역\t코드\t평가요소\t매우잘함\t잘함\t보통\t노력요함\n국어\t읽기\t1\t요약\tA\tB\tC\tD";
+  expect(subjectsOf(parseEvalPlanTSV(text).rows)).toEqual(["국어"]);
+});
+
+test("교과가 바뀌면 영역을 이어받지 않는다", () => {
+  const text = "국어\t듣기\t1\t토론\tA\tB\tC\tD\n수학\t\t2\t나눗셈\tA\tB\tC\tD";
+  expect(parseEvalPlanTSV(text).rows[1].area).toBe("");
+});

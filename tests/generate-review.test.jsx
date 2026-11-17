@@ -104,15 +104,36 @@ test("검토: 체크해야 복사가 켜지고, 고치면 다시 꺼진다", () 
   expect(within(c).getByText("근거 약함")).toBeTruthy();
 });
 
-test("검토: 화면에서는 가명을 실명으로, 저장은 가명으로", () => {
+test("검토: AI가 넣은 가명은 화면에서 실명으로 보이고 경고가 뜬다", () => {
   reviewSeed("S02와 협력함.");
   wrap(<Review />);
   pickSection("행발");
-  const box = screen.getByLabelText("초안");
-  expect(box.value).toBe("박민와 협력함.");
-  fireEvent.change(box, { target: { value: "박민와 잘 협력함." } });
-  expect(loadState().drafts.S01.C.draft).toBe("S02와 잘 협력함.");
-  expect(screen.getByText(/초안에 학생 이름이나 ID가 들어 있어요/)).toBeTruthy();
+  expect(screen.getByLabelText("초안").value).toBe("박민와 협력함.");
+  expect(screen.getByText(/초안에 학생 ID\(S01 같은 가명\)가 들어 있어요/)).toBeTruthy();
+});
+
+test("검토: 고친 글은 보이는 그대로 저장되고, 이름과 같은 낱말이 망가지지 않는다", async () => {
+  localStorage.clear();
+  const s = addStudents(emptyState(), ["한결"]);
+  s.drafts = { S01: { C: { draft: "성실함.", evidence: [], warnings: [], missing: [], reviewed: false } } };
+  saveState(s);
+  wrap(<Review />);
+  pickSection("행발");
+  fireEvent.change(screen.getByLabelText("초안"), { target: { value: "한결같이 성실함." } });
+  expect(loadState().drafts.S01.C.draft).toBe("한결같이 성실함.");
+  expect(screen.getByLabelText("초안").value).toBe("한결같이 성실함.");
+  fireEvent.click(screen.getByLabelText("검토 완료"));
+  fireEvent.click(screen.getByRole("button", { name: "복사" }));
+  await waitFor(() => expect(copied).toEqual(["한결같이 성실함."]));
+});
+
+test("검토: 복사는 화면에 보이는 글(가명을 실명으로 바꾼 글)을 복사한다", async () => {
+  reviewSeed("S02와 협력함.");
+  wrap(<Review />);
+  pickSection("행발");
+  fireEvent.click(screen.getByLabelText("검토 완료"));
+  fireEvent.click(screen.getByRole("button", { name: "복사" }));
+  await waitFor(() => expect(copied).toEqual(["박민와 협력함."]));
 });
 
 test("검토: [보충 필요] 빨간 강조와 바이트 초과 표시", () => {

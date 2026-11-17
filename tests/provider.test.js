@@ -167,3 +167,9 @@ describe("runBatch", () => {
     expect(out).toEqual({ done: ["S01"], pausedAt: "S02" });
   });
 });
+
+test("callGemini: 생각하는 모델에서도 답이 잘리지 않게 출력 한도를 넉넉히 둔다", async () => {
+  let body;
+  await callGemini({ key: "k", model: "m", system: "", user: "", fetchImpl: async (u, i) => { body = JSON.parse(i.body); return geminiReply({ draft: "가" }); } });
+  expect(body.generationConfig.maxOutputTokens).toBeGreaterThanOrEqual(8192);
+});

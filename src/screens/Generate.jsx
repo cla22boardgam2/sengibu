@@ -140,7 +140,7 @@ function AutoMode({ state, stateRef, section, opts, keyName, targets, store, ski
         </div>
       )}
       {status && <p className="text-sm text-stone-600 mt-1">{status}</p>}
-      {scrubbed > 0 && <div className="mt-2"><Notice tone="warn">메모 속 실명 {scrubbed}곳을 가명으로 바꿔 보냈어요.</Notice></div>}
+      {scrubbed > 0 && <div className="mt-2"><Notice tone="warn">실명 {scrubbed}곳을 가명으로 바꿔 보냈어요.</Notice></div>}
     </Card>
   );
 }
@@ -221,7 +221,7 @@ function CopyMode({ state, section, opts, keyName, store, skipExisting, hasKey, 
             </button>
             <span className="text-xs text-stone-500">새 채팅에 붙여넣으세요</span>
           </div>
-          {req.scrubbed > 0 && <div className="mt-2"><Notice tone="warn">메모 속 실명 {req.scrubbed}곳을 가명으로 바꿔 복사해요.</Notice></div>}
+          {req.scrubbed > 0 && <div className="mt-2"><Notice tone="warn">실명 {req.scrubbed}곳을 가명으로 바꿔 복사해요.</Notice></div>}
           {showPrompt && <textarea readOnly className={`${inputCls} h-40 mt-2 font-mono text-xs`} value={prompt} aria-label="프롬프트" />}
           <textarea aria-label="답 붙여넣기" className={`${inputCls} h-32 mt-3`} placeholder="AI가 준 답(JSON)을 그대로 붙여넣으세요"
             value={answer} onChange={(e) => setAnswer(e.target.value)} />

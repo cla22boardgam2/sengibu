@@ -26,6 +26,12 @@ function splitTSV(text) {
 
 const clean = (v) => String(v ?? "").replace(/\s*\n\s*/g, " ").trim();
 
+// 머리글: 등급 칸 이름이 그대로 있거나 '평가요소' 칸이 있는 줄 ("교과", "과목", "교과(군)" 등 첫 칸 이름과 무관)
+function isHeader(c) {
+  const levelNames = c[5] === "잘함" && c[6] === "보통" && c[7].startsWith("노력");
+  return levelNames || c[3] === "평가요소" || c[0] === "교과";
+}
+
 function rowsFromCells(cells) {
   const rows = [];
   let skipped = 0;
@@ -34,9 +40,13 @@ function rowsFromCells(cells) {
   for (const raw of cells) {
     const c = Array.from({ length: 8 }, (_, i) => clean(raw[i]));
     if (c.every((v) => v === "")) continue;
-    if (c[0] === "교과") continue;
-    subject = c[0] || subject;
-    area = c[1] || area;
+    if (isHeader(c)) continue;
+    if (c[0] && c[0] !== subject) {
+      subject = c[0];
+      area = c[1];
+    } else {
+      area = c[1] || area;
+    }
     const [, , code, element, vg, g, n, e] = c;
     if (!subject || !element || !g || !n || !e) { skipped += 1; continue; }
     rows.push({ id: `${subject}|${code}|${element}`, subject, area, code, element, levels: { vg, g, n, e } });

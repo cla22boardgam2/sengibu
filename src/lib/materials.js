@@ -147,12 +147,16 @@ export function buildRequest(state, pseudoId, section, opts = {}) {
   const memoLines = [...notes, `분량: ${LENGTH_NAMES[state.settings.length] || "보통"}`];
   if (state.settings.classNote?.trim()) memoLines.push(state.settings.classNote.trim());
 
+  // 초안은 선생님이 고친 글이라 실명이 있을 수 있다. 조용히 가명으로 바꿔 보낸다(알림 횟수에는 넣지 않음).
+  const quiet = (t) => scrubNames(t, state.students).text;
+  const others = otherDraftsOf(state, pseudoId, key);
+
   const student = {
     pseudoId,
     grade: state.settings.grade,
     logs: logs.slice().sort(byDate).map((l) => ({ date: l.date, text: scrub(l.text) })),
-    usedOpenings: usedOpeningsOf(state, pseudoId, key),
-    otherDrafts: otherDraftsOf(state, pseudoId, key),
+    usedOpenings: usedOpeningsOf(state, pseudoId, key).map(quiet),
+    otherDrafts: Object.fromEntries(Object.entries(others).map(([k, v]) => [k, quiet(v)])),
     memo: scrub(memoLines.join("\n")),
   };
 
@@ -161,7 +165,7 @@ export function buildRequest(state, pseudoId, section, opts = {}) {
     opts: optsOf(state, section, opts),
     student,
     guideText: state.settings.guideText,
-    extraDocs: extraDocsOf(state, section, opts),
+    extraDocs: scrub(extraDocsOf(state, section, opts)),
     scrubbed,
     empty: logs.length === 0,
   };

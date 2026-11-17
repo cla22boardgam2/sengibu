@@ -29,7 +29,6 @@ function SaveWarning() {
 
 export default function App() {
   const [tab, setTab] = useState(TABS[0]);
-  const Screen = SCREENS[tab];
   return (
     <AppStateProvider goTo={setTab}>
       <div className="min-h-screen">
@@ -47,8 +46,16 @@ export default function App() {
             </nav>
           </div>
         </header>
+        {/* 모든 화면을 계속 띄워 두고 안 보이게만 한다: 반 전체 생성 중 다른 탭에 가도 진행·멈춤 버튼이 살아 있다 */}
         <main className="mx-auto max-w-5xl px-4 py-6">
-          {Screen ? <Screen /> : <p className="text-stone-500">준비 중이에요.</p>}
+          {TABS.map((t) => {
+            const Screen = SCREENS[t];
+            return (
+              <div key={t} hidden={tab !== t}>
+                <Screen />
+              </div>
+            );
+          })}
         </main>
       </div>
     </AppStateProvider>

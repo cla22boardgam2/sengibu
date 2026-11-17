@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useApp } from "../state.jsx";
 import { draftKeyOf } from "../lib/materials.js";
-import { toRealNames, scrubNames } from "../lib/students.js";
+import { toRealNames } from "../lib/students.js";
 import { patchDraft, saveDraft, hasStudentId } from "../lib/drafts.js";
 import { generateOne } from "../lib/provider.js";
 import { useSectionPicker } from "../components/SectionPicker.jsx";
@@ -35,8 +35,9 @@ function DraftCard({ st, entry, state, section, opts, keyName, update }) {
   const [note, setNote] = useState("");
   const shown = toRealNames(entry.draft, state.students);
 
-  const edit = (value) =>
-    update((s) => patchDraft(s, st.pseudoId, keyName, { draft: scrubNames(value, s.students).text, reviewed: false }));
+  // 고친 글은 보이는 그대로 저장한다 (다시 가명으로 바꾸면 "한결같이" 같은 낱말이 망가진다).
+  // AI로 다시 보낼 때는 buildRequest가 가명으로 바꾼다.
+  const edit = (value) => update((s) => patchDraft(s, st.pseudoId, keyName, { draft: value, reviewed: false }));
 
   const regenerate = async () => {
     if (entry.reviewed && !window.confirm("검토 완료한 초안을 새로 쓸까요?")) return;
@@ -51,14 +52,14 @@ function DraftCard({ st, entry, state, section, opts, keyName, update }) {
     setBusy(false);
   };
 
-  const copy = async () => setNote((await copyText(entry.draft)) ? "복사했어요." : "복사가 안 돼요. 초안 칸에서 직접 복사해 주세요.");
+  const copy = async () => setNote((await copyText(shown)) ? "복사했어요." : "복사가 안 돼요. 초안 칸에서 직접 복사해 주세요.");
 
   return (
     <section aria-label={`${st.number}번 학생 초안`} className="bg-white border border-stone-200 rounded-xl p-4 mb-3">
       <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
         <div className="font-semibold">{st.number}. {st.name}</div>
         <div className="flex items-center gap-3">
-          <ByteCounter text={entry.draft} state={state} section={section} />
+          <ByteCounter text={shown} state={state} section={section} />
           {state.settings.geminiKey && (
             <Button variant="ghost" onClick={regenerate} disabled={busy}>{busy ? "쓰는 중…" : "다시 생성"}</Button>
           )}
@@ -72,7 +73,7 @@ function DraftCard({ st, entry, state, section, opts, keyName, update }) {
             <div className="mt-1 border border-red-200 rounded-lg p-2 bg-red-50/40"><Highlighted text={shown} /></div>
           )}
           {hasStudentId(entry.draft) && (
-            <div className="mt-2"><Notice tone="error">초안에 학생 이름이나 ID가 들어 있어요. 생기부 문장에는 이름을 쓰지 않으니 지워 주세요.</Notice></div>
+            <div className="mt-2"><Notice tone="error">초안에 학생 ID(S01 같은 가명)가 들어 있어요. 화면에는 이름으로 보여요. 생기부 문장에는 이름을 쓰지 않으니 지워 주세요.</Notice></div>
           )}
           <div className="flex items-center justify-between mt-2">
             <label className="text-sm flex items-center gap-2">
@@ -128,7 +129,7 @@ export default function Review() {
   const reviewed = withDraft.filter((s) => state.drafts[s.pseudoId][keyName].reviewed);
 
   const copyAll = async () => {
-    const text = reviewed.map((s) => `${s.number}\t${state.drafts[s.pseudoId][keyName].draft}`).join("\n");
+    const text = reviewed.map((s) => `${s.number}\t${toRealNames(state.drafts[s.pseudoId][keyName].draft, state.students)}`).join("\n");
     setNote((await copyText(text)) ? `${reviewed.length}명 복사했어요 (번호, 탭, 초안 순).` : "복사가 안 돼요.");
   };
 

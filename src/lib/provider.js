@@ -78,7 +78,8 @@ export async function callGemini({ key, model, system, user, fetchImpl = fetch }
     body: JSON.stringify({
       systemInstruction: { parts: [{ text: system }] },
       contents: [{ role: "user", parts: [{ text: user }] }],
-      generationConfig: { responseMimeType: "application/json", maxOutputTokens: 2000 },
+      // 생각(thinking) 토큰도 출력 한도에 들어가는 모델이 있어 넉넉히 둔다
+      generationConfig: { responseMimeType: "application/json", maxOutputTokens: 8192 },
     }),
   });
   if (!res.ok) {
