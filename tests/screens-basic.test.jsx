@@ -19,6 +19,7 @@ test("학생 이름을 여러 줄 붙여넣으면 가명이 붙고 저장된다"
 
 test("평가계획을 붙여넣으면 읽은 결과를 알려 준다", () => {
   wrap(<Settings />);
+  fireEvent.click(screen.getByRole("button", { name: /^평가계획/ }));
   const tsv = [
     "교과\t영역(단원)\t성취기준 코드\t평가요소\t매우잘함\t잘함\t보통\t노력요함",
     "국어\t듣기·말하기\t6국01-03\t토론하기\tA\tB\tC\tD",
