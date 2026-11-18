@@ -2,7 +2,7 @@ import { emptyState } from "../src/lib/defaults.js";
 import { addStudents } from "../src/lib/students.js";
 import {
   parseDraftResponse, emptyResult, promptParts, buildCopyPrompt, COPY_HEADER,
-  callGemini, generateOne, runBatch, DEFAULT_GEMINI_MODEL,
+  callGemini, generateOne, runBatch, DEFAULT_GEMINI_MODEL, buildBatchCopyPrompt, parseBatchResponse,
 } from "../src/lib/provider.js";
 import { buildRequest } from "../src/lib/materials.js";
 
@@ -172,4 +172,45 @@ test("callGemini: 생각하는 모델에서도 답이 잘리지 않게 출력 �
   let body;
   await callGemini({ key: "k", model: "m", system: "", user: "", fetchImpl: async (u, i) => { body = JSON.parse(i.body); return geminiReply({ draft: "가" }); } });
   expect(body.generationConfig.maxOutputTokens).toBeGreaterThanOrEqual(8192);
+});
+
+describe("여러 명 한 번에 (복사 방식)", () => {
+  test("buildBatchCopyPrompt: 지침·첨부는 한 번만, 학생 블록은 순서대로, 실명은 없다", () => {
+    const s = state();
+    const reqs = ["S01", "S02", "S03"].map((p) => buildRequest(s, p, "C", {}));
+    const text = buildBatchCopyPrompt(reqs);
+    const { system } = promptParts(reqs[0]);
+    expect(text.split(system).length - 1).toBe(1);
+    expect(text.split("행발은 1500바이트 이내").length - 1).toBe(1);
+    expect(text).toContain("학생 3명");
+    expect(text).toContain("JSON 배열");
+    const i1 = text.indexOf("[학생 ID] S01");
+    const i3 = text.indexOf("[학생 ID] S03");
+    expect(i1).toBeGreaterThan(0);
+    expect(i3).toBeGreaterThan(i1);
+    expect(text).toContain("=== 학생 2 / 3 ===");
+    expect(text).not.toMatch(/김지수|박민|이하늘/);
+  });
+
+  test("parseBatchResponse: 코드블록 속 배열을 학생 ID로 나눠 읽는다", () => {
+    const raw = '```json\n[{"student_id":"S02","draft":"나."},{"student_id":"S01","draft":"가.","evidence":[{"sentence":"가.","source":"칩"}]}]\n```';
+    const out = parseBatchResponse(raw, ["S01", "S02", "S03"], "C");
+    expect(out.results.S01).toMatchObject({ draft: "가.", idMismatch: false, warnings: [] });
+    expect(out.results.S01.evidence).toHaveLength(1);
+    expect(out.results.S02.draft).toBe("나.");
+    expect(out.missing).toEqual(["S03"]);
+    expect(out.unknown).toEqual([]);
+    expect(out.ok).toBe(true);
+  });
+
+  test("parseBatchResponse: 앞뒤 군말, 목록에 없는 ID, 한 명짜리 객체", () => {
+    const out = parseBatchResponse('네! [{"student_id":"S09","draft":"x"},{"student_id":"S01","draft":"가."}] 끝', ["S01"], "C");
+    expect(out.results.S01.draft).toBe("가.");
+    expect(out.unknown).toEqual(["S09"]);
+    expect(parseBatchResponse('{"student_id":"S01","draft":"가."}', ["S01"], "C").results.S01.draft).toBe("가.");
+  });
+
+  test("parseBatchResponse: JSON이 아니면 ok:false", () => {
+    expect(parseBatchResponse("죄송해요", ["S01"], "C")).toMatchObject({ ok: false, results: {} });
+  });
 });

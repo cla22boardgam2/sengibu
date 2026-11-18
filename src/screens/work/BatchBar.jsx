@@ -4,6 +4,7 @@ import { saveDraft } from "../../lib/drafts.js";
 import { toRealNames } from "../../lib/students.js";
 import { Button, Notice } from "../../components/ui.jsx";
 import { copyText, confirmGuide } from "./DraftPane.jsx";
+import BatchCopy from "./BatchCopy.jsx";
 
 // "입력된 학생 전체 생성". 시작할 때의 항목(key)을 붙잡아 두므로, 도중에 다른 항목을 봐도 원래 항목에 저장된다.
 export default function BatchBar({ state, stateRef, update, section, opts, keyName, label, inputPids, auto, hasKey, forceCopy, setForceCopy, goTo }) {
@@ -72,7 +73,7 @@ export default function BatchBar({ state, stateRef, update, section, opts, keyNa
           </>
         ) : (
           <span className="text-stone-600">
-            {hasKey ? "복사·붙여넣기 방식이에요." : "API 키가 없어서 학생마다 오른쪽에서 복사·붙여넣기로 써요."}
+            {hasKey ? "복사·붙여넣기 방식이에요." : "API 키 없이 복사·붙여넣기로 써요. 아래에서 여러 명을 한 번에, 오른쪽에서 한 명씩."}
             {!hasKey && <button type="button" className="underline text-emerald-700 ml-1" onClick={() => goTo("설정", "ai")}>AI 연결하기</button>}
           </span>
         )}
@@ -91,6 +92,7 @@ export default function BatchBar({ state, stateRef, update, section, opts, keyNa
           <Button variant="ghost" onClick={copyAll} disabled={reviewedSt.length === 0}>검토 완료 {reviewedSt.length}명 모두 복사</Button>
         </span>
       </div>
+      {!auto && <BatchCopy {...{ state, update, section, opts, keyName, inputPids, skipExisting }} />}
       {run && (
         <div>
           <div className="flex items-center gap-3">

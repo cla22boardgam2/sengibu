@@ -156,3 +156,56 @@ export async function runBatch({ getState, pseudoIds, section, opts, onResult, o
   }
   return { done, pausedAt: null };
 }
+
+// ── 여러 명 한 번에 (복사·붙여넣기 방식) ──
+// 프롬프트 본문(COMMON_PROMPT·SECTION_RULES)은 그대로 쓰고, 여러 학생을 한 번에 보내는 포장만 더한다.
+// 같은 항목이므로 지침과 첨부(기재요령·참고 자료)는 한 번만 넣는다.
+export function batchHeader(n) {
+  return `아래 지침과 자료에 따라 학생 ${n}명의 초안을 각각 작성해 주세요.
+- 학생마다 지침의 출력 형식(JSON 객체)을 따르고, 전체 답은 하나의 JSON 배열 [ {...}, {...} ] 로만 출력해 주세요.
+- 배열 순서는 학생 순서와 같게 하고, student_id에는 각 학생의 [학생 ID]를 그대로 써 주세요.
+- 같은 반 학생들이니 학생끼리 시작 표현, 문장 구조, 문장 끝맺음이 겹치지 않게 써 주세요.
+
+`;
+}
+
+export function buildBatchCopyPrompt(reqs) {
+  const first = reqs[0];
+  const system = buildSystemPrompt(first.section, first.opts);
+  const attach = `[첨부: 2026학년도 학교생활기록부 기재요령(초등학교) 발췌]\n${first.guideText}\n\n[첨부: 참고 자료]\n${first.extraDocs || "없음"}`;
+  const blocks = reqs.map((r, i) => `=== 학생 ${i + 1} / ${reqs.length} ===\n${buildUserText(r.section, r.opts, r.student)}`);
+  return `${batchHeader(reqs.length)}${system}\n\n---\n\n${attach}\n\n${blocks.join("\n\n")}`;
+}
+
+function extractItems(raw) {
+  const text = String(raw ?? "").trim().replace(/^```(?:json)?\s*|\s*```$/g, "");
+  let v = tryJSON(text);
+  if (v == null) {
+    const a = text.indexOf("[");
+    const b = text.lastIndexOf("]");
+    if (a !== -1 && b > a) v = tryJSON(text.slice(a, b + 1));
+  }
+  if (v == null) {
+    const a = text.indexOf("{");
+    const b = text.lastIndexOf("}");
+    if (a !== -1 && b > a) v = tryJSON(text.slice(a, b + 1));
+  }
+  if (Array.isArray(v)) return v;
+  if (v && typeof v === "object") return Array.isArray(v.results) ? v.results : [v];
+  return null;
+}
+
+// 답을 학생 ID로 나눈다. results: {pid: 결과}, missing: 답이 없는 학생, unknown: 목록에 없는 ID
+export function parseBatchResponse(raw, pseudoIds, section) {
+  const items = extractItems(raw);
+  if (!items) return { ok: false, results: {}, missing: [...pseudoIds], unknown: [] };
+  const results = {};
+  const unknown = [];
+  for (const it of items) {
+    if (!it || typeof it !== "object" || typeof it.draft !== "string") continue;
+    const id = String(it.student_id ?? "");
+    if (!pseudoIds.includes(id)) { unknown.push(id || "(ID 없음)"); continue; }
+    if (!results[id]) results[id] = parseDraftResponse(JSON.stringify(it), id, section);
+  }
+  return { ok: true, results, missing: pseudoIds.filter((p) => !results[p]), unknown };
+}

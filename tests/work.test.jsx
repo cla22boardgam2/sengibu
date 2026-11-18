@@ -278,3 +278,50 @@ describe("검토", () => {
     await waitFor(() => expect(copied).toEqual(["1\t가."]));
   });
 });
+
+describe("여러 명 한 번에 복사 (키 없이)", () => {
+  const names = ["가람", "나래", "다솜", "라온", "마루", "바다", "사랑"];
+
+  test("입력된 학생을 묶어 복사하고, 배열 답을 붙여넣으면 학생별로 저장하고 다음 묶음으로", async () => {
+    seed({ names, chips: true });
+    open("행발");
+    fireEvent.change(screen.getByLabelText("한 번에 몇 명"), { target: { value: "5" } });
+    fireEvent.click(screen.getByRole("button", { name: "5명 프롬프트 복사" }));
+    await waitFor(() => expect(copied).toHaveLength(1));
+    expect(copied[0]).toContain("학생 5명");
+    expect(copied[0]).toContain("[학생 ID] S05");
+    expect(copied[0]).not.toContain("[학생 ID] S06");
+    expect(copied[0]).not.toMatch(/가람|마루/);
+    expect(screen.getByText(/1~5번째 · 대상 7명/)).toBeTruthy();
+
+    const answer = JSON.stringify(["S01", "S02", "S03", "S04"].map((id) => ({ student_id: id, draft: `${id} 글.`, evidence: [], warnings: [], missing: [] })));
+    fireEvent.change(screen.getByLabelText("여러 명 답 붙여넣기"), { target: { value: answer } });
+    fireEvent.click(screen.getByRole("button", { name: "여러 명 답 저장" }));
+    const st = loadState();
+    expect(st.drafts.S01.C.draft).toBe("S01 글.");
+    expect(st.drafts.S04.C.reviewed).toBe(false);
+    expect(st.drafts.S05).toBeUndefined();
+    expect(screen.getByText(/4명 저장했어요/)).toBeTruthy();
+    expect(screen.getByText(/답이 없는 학생: 5번 마루/)).toBeTruthy();
+    // 초안 있는 학생은 건너뛰므로 다음 묶음은 남은 3명
+    expect(screen.getByText(/1~3번째 · 대상 3명/)).toBeTruthy();
+    expect(screen.getByLabelText("여러 명 답 붙여넣기").value).toBe("");
+  });
+
+  test("JSON이 아닌 답이면 아무것도 저장하지 않고 알려 준다", () => {
+    seed({ names: names.slice(0, 2), chips: true });
+    open("행발");
+    fireEvent.change(screen.getByLabelText("여러 명 답 붙여넣기"), { target: { value: "죄송해요" } });
+    fireEvent.click(screen.getByRole("button", { name: "여러 명 답 저장" }));
+    expect(screen.getByText(/답에서 JSON 배열을 찾지 못했어요/)).toBeTruthy();
+    expect(loadState().drafts.S01).toBeUndefined();
+  });
+
+  test("키가 있으면 묶음 복사는 복사 방식을 골랐을 때만 보인다", () => {
+    seed({ key: "k", chips: true });
+    open("행발");
+    expect(screen.queryByRole("button", { name: /명 프롬프트 복사/ })).toBeNull();
+    fireEvent.click(screen.getByLabelText("복사·붙여넣기로 하기"));
+    expect(screen.getByRole("button", { name: "3명 프롬프트 복사" })).toBeTruthy();
+  });
+});
