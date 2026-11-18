@@ -26,6 +26,9 @@ function Pills({ items, value, onChange, small, label }) {
 }
 
 export function sameMaterialText(group, students) {
+  if (group.length > 3) {
+    return `이 학생을 포함해 ${group.length}명의 재료(등급·칩·메모)가 똑같아요. 이대로면 문장이 비슷해질 수 있어요. 이 학생만의 모습을 메모로 한 줄 더하면 달라져요.`;
+  }
   const nums = group.map((p) => `${students.find((s) => s.pseudoId === p)?.number}번`);
   const who = nums.length === 2 ? `${nums[0]}과 ${nums[1]}` : nums.join(", ");
   return `${who}의 재료가 같아요. 메모를 한 줄 더하면 달라져요.`;

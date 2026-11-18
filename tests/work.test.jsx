@@ -329,6 +329,7 @@ describe("여러 명 한 번에 복사 (키 없이)", () => {
 test("API 전체 생성은 기본 5명씩 한 요청으로, 고르면 바꾸고, 이어서 하기는 남은 학생으로", async () => {
   seed({ key: "k", chips: true, names: ["가", "나", "다", "라", "마", "바"] });
   runBatch.mockResolvedValueOnce({ done: ["S01", "S02", "S03", "S04", "S06"], pausedAt: "S05", remaining: ["S05"] });
+  runBatch.mockResolvedValueOnce({ done: ["S05"], pausedAt: null, remaining: [] });
   open("행발");
   expect(screen.getByLabelText("API 한 번에 몇 명").value).toBe("5");
   fireEvent.change(screen.getByLabelText("API 한 번에 몇 명"), { target: { value: "10" } });
@@ -336,4 +337,10 @@ test("API 전체 생성은 기본 5명씩 한 요청으로, 고르면 바꾸고,
   expect(runBatch.mock.calls[0][0].groupSize).toBe(10);
   fireEvent.click(await screen.findByRole("button", { name: "이어서 하기" }));
   expect(runBatch.mock.calls[1][0].pseudoIds).toEqual(["S05"]);
+});
+
+test("재료가 같은 학생이 많으면 번호를 다 늘어놓지 않고 몇 명인지 알려 준다", () => {
+  seed({ names: ["가", "나", "다", "라", "마"], chips: true });
+  open("행발");
+  expect(screen.getByText("이 학생을 포함해 5명의 재료(등급·칩·메모)가 똑같아요. 이대로면 문장이 비슷해질 수 있어요. 이 학생만의 모습을 메모로 한 줄 더하면 달라져요.")).toBeTruthy();
 });
