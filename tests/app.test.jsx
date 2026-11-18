@@ -81,7 +81,7 @@ test("처음 연 사람: 홈 체크리스트만 보고 학생을 넣고 행발 �
   fireEvent.click(screen.getByRole("button", { name: "홈" }));
   fireEvent.click(screen.getByRole("button", { name: "행발 작업하기" }));
   fireEvent.click(screen.getByRole("button", { name: /^학습/ }));
-  fireEvent.click(screen.getByRole("button", { name: "발표 잘함" }));
+  fireEvent.click(screen.getByRole("button", { name: "손을 들어 자기 생각을 자주 발표함" }));
   fireEvent.click(screen.getByRole("button", { name: "프롬프트 복사" }));
   await waitFor(() => expect(copied).toHaveLength(1));
   fireEvent.change(screen.getByLabelText("답 붙여넣기"), { target: { value: '{"student_id":"S01","draft":"발표를 즐김."}' } });

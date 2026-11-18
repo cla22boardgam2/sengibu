@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { CHIP_GROUPS, LEVEL_NAMES } from "../../lib/defaults.js";
 import { todayStr } from "../../lib/date.js";
 import ChipPicker from "../../components/ChipPicker.jsx";
@@ -38,15 +39,50 @@ export function inputActions(update) {
   return { toggleChipC, setGrade, setAct, toggleRole, setMemos };
 }
 
-// 행발 칩: 고른 칩 요약 + 분류별 접기
-function ChipBoard({ chips, selected = {}, onToggle, openGroups, setOpenGroups }) {
+const chipUid = () => `k-${Math.random().toString(36).slice(2, 9)}`;
+
+// 행발 칩 목록 고치기 (작업 화면에서 바로)
+export function chipActions(update) {
+  const setC = (fn) => update((s) => ({ ...s, chips: { ...s.chips, C: fn(s.chips.C) } }));
+  return {
+    rename: (id, text) => setC((C) => C.map((c) => (c.id === id ? { ...c, text } : c))),
+    remove: (id) => setC((C) => C.filter((c) => c.id !== id)),
+    add: (group, sub, text) =>
+      setC((C) => (C.some((c) => c.text === text) ? C : [...C, { id: chipUid(), group, sub, text, negative: group === "노력할 점" }])),
+  };
+}
+
+function AddChip({ label, onAdd }) {
+  const [text, setText] = useState("");
+  const add = () => { if (text.trim()) { onAdd(text.trim()); setText(""); } };
+  return (
+    <input aria-label={label} value={text} placeholder="+ 칩 추가 (Enter)"
+      onChange={(e) => setText(e.target.value)} onKeyDown={(e) => e.key === "Enter" && add()} onBlur={add}
+      className="border border-dashed border-slate-300 rounded-full px-2.5 py-1 text-xs w-44 bg-white" />
+  );
+}
+
+// 행발 칩: 고른 칩 요약 + 큰 분류 접기 > 소분류 > 칩. [칩 편집]으로 그 자리에서 고친다.
+function ChipBoard({ state, chips, selected = {}, onToggle, openGroups, setOpenGroups, edit }) {
+  const [editing, setEditing] = useState(false);
   const picked = chips.filter((c) => selected[c.id]);
   const groups = [...new Set([...CHIP_GROUPS, ...chips.map((c) => c.group)])].filter((g) => chips.some((c) => c.group === g));
   const flip = (g) => setOpenGroups((o) => ({ ...o, [g]: !o[g] }));
+  const usedBy = (id) => Object.values(state.inputs).filter((inp) => inp?.chipsC?.[id]).length;
+  const remove = (c) => {
+    const n = usedBy(c.id);
+    if (window.confirm(n ? `'${c.text}' 칩을 ${n}명이 골랐어요. 지우면 그 학생들 재료에서도 빠져요. 지울까요?` : `'${c.text}' 칩을 지울까요?`)) edit.remove(c.id);
+  };
   return (
     <div>
-      <div className="rounded-lg bg-slate-50 border border-slate-200 p-2 mb-2">
-        <div className="text-xs text-slate-500 mb-1">고른 칩 {picked.length}개</div>
+      <div className="rounded-xl bg-slate-50 border border-slate-200 p-2 mb-2">
+        <div className="flex items-center justify-between mb-1">
+          <span className="text-xs text-slate-500">고른 칩 {picked.length}개</span>
+          <button type="button" onClick={() => setEditing((v) => !v)}
+            className={`text-xs rounded-full px-2.5 py-0.5 ${editing ? "bg-indigo-600 text-white" : "border border-slate-300 text-slate-600 hover:bg-white"}`}>
+            {editing ? "편집 끝" : "칩 편집"}
+          </button>
+        </div>
         {picked.length === 0 ? (
           <p className="text-xs text-slate-400">아래 분류를 펼쳐 골라 주세요.</p>
         ) : (
@@ -72,7 +108,34 @@ function ChipBoard({ chips, selected = {}, onToggle, openGroups, setOpenGroups }
                 <span className={g === "노력할 점" ? "text-amber-800" : "text-slate-700"}>{g}</span>
                 <span className="text-xs text-slate-400">{n > 0 ? `${n}개 고름 · ` : ""}{open ? "접기 ▲" : "펼치기 ▼"}</span>
               </button>
-              {open && <div className="px-3 pb-2"><ChipPicker chips={list} selected={selected} onToggle={onToggle} /></div>}
+              {open && (
+                <div className="px-3 pb-2 space-y-2">
+                  {[...new Set(list.map((c) => c.sub || "기타"))].map((sub) => {
+                    const subList = list.filter((c) => (c.sub || "기타") === sub);
+                    return (
+                      <div key={sub} role="group" aria-label={`${g} · ${sub}`}>
+                        <div className="text-[11px] font-semibold text-slate-400 mb-1">{sub}</div>
+                        {editing ? (
+                          <div className="flex flex-wrap gap-1.5 items-center">
+                            {subList.map((c) => (
+                              <span key={c.id} className="inline-flex items-center gap-0.5 rounded-full border border-slate-300 bg-white pl-2 pr-1 py-0.5">
+                                <input aria-label={`칩 이름: ${c.text}`} value={c.text}
+                                  onChange={(e) => e.target.value.trim() && edit.rename(c.id, e.target.value)}
+                                  className="text-xs bg-transparent outline-none" style={{ width: `${Math.max(4, c.text.length + 1)}em` }} />
+                                <button type="button" aria-label={`${c.text} 지우기`} onClick={() => remove(c)}
+                                  className="text-slate-400 hover:text-red-600 px-1 text-xs">✕</button>
+                              </span>
+                            ))}
+                            <AddChip label={`${g} · ${sub}에 칩 추가`} onAdd={(t) => edit.add(g, sub, t)} />
+                          </div>
+                        ) : (
+                          <ChipPicker chips={subList} selected={selected} onToggle={onToggle} />
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           );
         })}
@@ -157,7 +220,7 @@ export default function StudentInput({ state, st, section, opts, memoKey, acts, 
       )}
 
       {section === "C" && (
-        <ChipBoard chips={state.chips.C} selected={inp.chipsC} onToggle={(id) => actions.toggleChipC(pid, id)}
+        <ChipBoard state={state} chips={state.chips.C} selected={inp.chipsC} onToggle={(id) => actions.toggleChipC(pid, id)} edit={ui.chipEdit}
           openGroups={ui.openGroups} setOpenGroups={ui.setOpenGroups} />
       )}
 

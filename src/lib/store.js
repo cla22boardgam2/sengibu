@@ -1,10 +1,26 @@
-import { emptyState } from "./defaults.js";
+import { emptyState, DEFAULT_CHIPS_C, OLD_GROUP_MAP, LEGACY_SUB } from "./defaults.js";
 
 export const STORAGE_KEY = "sengibu:v1";
 const BROKEN_KEY = `${STORAGE_KEY}:broken`;
 const BACKUP_ERROR = "백업 파일을 읽을 수 없어요";
 
 const isObj = (v) => v !== null && typeof v === "object" && !Array.isArray(v);
+
+// 예전(한 단계) 행발 칩을 두 단계 새 목록으로. 학생이 고른 칩과 선생님이 넣은 칩은 "이전 칩"으로 남긴다.
+function migrateChipsC(C, inputs) {
+  if (!Array.isArray(C) || C.some((c) => c?.sub)) return C;
+  const used = new Set();
+  for (const inp of Object.values(isObj(inputs) ? inputs : {})) for (const id of Object.keys(inp?.chipsC || {})) used.add(id);
+  const isOldDefault = (id) => /^c-\d+-\d+$/.test(id);
+  const keep = C.filter((c) => c && (used.has(c.id) || !isOldDefault(c.id))).map((c) => ({
+    ...c,
+    group: OLD_GROUP_MAP[c.group] || c.group || "학습",
+    sub: LEGACY_SUB,
+    negative: !!c.negative,
+  }));
+  const texts = new Set(keep.map((c) => c.text));
+  return [...DEFAULT_CHIPS_C.filter((c) => !texts.has(c.text)).map((c) => ({ ...c })), ...keep];
+}
 
 // 저장된 값 위에 빠진 칸만 기본값으로 채운다 (예전 구조 호환)
 function mergeDefaults(saved) {
@@ -15,6 +31,7 @@ function mergeDefaults(saved) {
   out.chips = { ...base.chips, ...(isObj(saved.chips) ? saved.chips : {}) };
   for (const k of ["students", "evalPlan", "activities"]) if (!Array.isArray(out[k])) out[k] = base[k];
   for (const k of ["inputs", "drafts"]) if (!isObj(out[k])) out[k] = base[k];
+  out.chips.C = migrateChipsC(out.chips.C, out.inputs);
   if (!Number.isInteger(out.nextStudentSeq)) out.nextStudentSeq = base.nextStudentSeq;
   return out;
 }

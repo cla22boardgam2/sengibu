@@ -15,7 +15,7 @@ const SECTIONS = [
   {
     sec: "C", short: "행발", title: "행동특성 및 종합의견", sub: "학년말 종합의견", icon: "🌱",
     tone: { title: "text-violet-900", pill: "bg-violet-100 text-violet-700 hover:bg-violet-200", bar: "bg-violet-500", ring: "hover:ring-violet-200" },
-    points: ["성품·학습·친구·생활 칩으로 고르기", "같은 반 학생과 표현이 겹치지 않게", "나이스 바이트 수 바로 확인"],
+    points: ["학습·인성·관계·생활 칩을 소분류별로 고르기", "같은 반 학생과 표현이 겹치지 않게", "나이스 바이트 수 바로 확인"],
   },
   {
     sec: "A", short: "교과 평어", title: "교과 평어", sub: "교과별 세부능력 및 특기사항", icon: "📘",

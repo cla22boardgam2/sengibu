@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useAppState } from "../state.jsx";
 import { parseEvalPlanTSV, parseEvalPlanXlsx, subjectsOf } from "../lib/evalPlan.js";
-import { AREAS, CHIP_GROUPS } from "../lib/defaults.js";
+import { AREAS, DEFAULT_CHIPS_C } from "../lib/defaults.js";
 import { DEFAULT_GEMINI_MODEL, MODEL_SUGGESTIONS } from "../lib/provider.js";
 import { Button, inputCls, Notice } from "../components/ui.jsx";
 import { setupSteps } from "../lib/progress.js";
@@ -121,21 +121,24 @@ function ChipEditor({ chips, onRemove, onAdd, label, negative }) {
 
 function ChipsCard() {
   const [state, update] = useAppState();
-  const removeC = (id) => update((s) => ({ ...s, chips: { ...s.chips, C: s.chips.C.filter((c) => c.id !== id) } }));
-  const addC = (group) => (text) =>
-    update((s) => s.chips.C.some((c) => c.text === text) ? s
-      : ({ ...s, chips: { ...s.chips, C: [...s.chips.C, { id: `c-${uid()}`, group, text, negative: group === "노력할 점" }] } }));
+  const resetC = () => {
+    if (!window.confirm("행발 칩을 처음 목록으로 되돌릴까요? 직접 고치거나 더한 칩은 사라지고, 그 칩을 고른 학생의 재료에서도 빠져요.")) return;
+    update((s) => ({ ...s, chips: { ...s.chips, C: DEFAULT_CHIPS_C.map((c) => ({ ...c })) } }));
+  };
   const removeB = (id) => update((s) => ({ ...s, chips: { ...s.chips, B: s.chips.B.filter((c) => c.id !== id) } }));
   const addB = (text) =>
     update((s) => s.chips.B.some((c) => c.text === text) ? s
       : ({ ...s, chips: { ...s.chips, B: [...s.chips.B, { id: `b-${uid()}`, text }] } }));
   return (
     <>
-      <p className="text-sm text-slate-500 mb-2">선생님 말투에 맞게 더하거나 빼세요. 칩을 빼면 그 칩을 고른 학생의 문장 재료에서도 빠져요.</p>
-      {CHIP_GROUPS.map((g) => (
-        <ChipEditor key={g} label={`행발 · ${g}`} negative={g === "노력할 점"}
-          chips={state.chips.C.filter((c) => c.group === g)} onRemove={removeC} onAdd={addC(g)} />
-      ))}
+      <div className="rounded-xl bg-slate-50 border border-slate-200 p-3 mb-4">
+        <div className="text-sm font-medium text-slate-700">행발 칩 ({state.chips.C.length}개)</div>
+        <p className="text-sm text-slate-500 mt-1">
+          행발 칩은 작업 화면의 [칩 편집]에서 학생을 보면서 바로 고치고 더할 수 있어요. (큰 분류 → 소분류 → 칩)
+        </p>
+        <Button variant="ghost" className="mt-2" onClick={resetC} aria-label="행발 칩 기본 목록으로 되돌리기">기본 목록으로 되돌리기</Button>
+      </div>
+      <p className="text-sm text-slate-500 mb-2">창체 역할 칩은 여기서 더하거나 빼세요. 칩을 빼면 그 칩을 고른 학생의 문장 재료에서도 빠져요.</p>
       <ChipEditor label="창체 · 역할" chips={state.chips.B} onRemove={removeB} onAdd={addB} />
     </>
   );

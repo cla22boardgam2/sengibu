@@ -4,6 +4,7 @@ import Students from "../src/screens/Students.jsx";
 import Settings from "../src/screens/Settings.jsx";
 import Backup from "../src/screens/Backup.jsx";
 import { loadState } from "../src/lib/store.js";
+import { DEFAULT_CHIPS_C } from "../src/lib/defaults.js";
 
 beforeEach(() => { localStorage.clear(); cleanup(); });
 const wrap = (ui) => render(<AppStateProvider>{ui}</AppStateProvider>);
@@ -51,4 +52,16 @@ test("잘못된 백업 파일을 불러오면 오류를 보이고 자료는 그�
   fireEvent.change(screen.getByLabelText("백업 파일 불러오기"), { target: { files: [file] } });
   expect(await screen.findByText("백업 파일을 읽을 수 없어요")).toBeTruthy();
   expect(loadState().students).toHaveLength(1);
+});
+
+test("설정 고급: 행발 칩은 작업 화면에서 고친다고 안내하고, 기본 목록으로 되돌릴 수 있다", () => {
+  const s = loadState();
+  s.chips.C = [{ id: "k-x", group: "학습", sub: "수업 태도", text: "내가 만든 칩", negative: false }];
+  localStorage.setItem("sengibu:v1", JSON.stringify(s));
+  window.confirm = () => true;
+  wrap(<Settings />);
+  fireEvent.click(screen.getByRole("button", { name: /^고급/ }));
+  expect(screen.getByText(/행발 칩은 작업 화면의 \[칩 편집\]에서/)).toBeTruthy();
+  fireEvent.click(screen.getByRole("button", { name: "행발 칩 기본 목록으로 되돌리기" }));
+  expect(loadState().chips.C).toEqual(DEFAULT_CHIPS_C);
 });

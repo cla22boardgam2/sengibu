@@ -10,7 +10,7 @@ function state() {
   const s = addStudents(emptyState(), ["김지수", "박민", "이하늘"]);
   s.settings.guideText = "행발은 1500바이트 이내";
   s.settings.geminiKey = "test-key";
-  const id = s.chips.C.find((c) => c.text === "발표 잘함").id;
+  const id = s.chips.C.find((c) => c.text === "손을 들어 자기 생각을 자주 발표함").id;
   for (const p of ["S01", "S02", "S03"]) s.inputs[p] = { chipsC: { [id]: "2026-11-17" } };
   return s;
 }

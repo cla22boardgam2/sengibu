@@ -30,7 +30,7 @@ test("draftKeyOf", () => {
 test("C: 칩은 날짜 있는 관찰 기록이 되고, 실명은 요청에 들어가지 않는다", () => {
   const s = base();
   s.inputs.S01 = {
-    chipsC: { [chip(s, "발표 잘함")]: "2026-11-17" },
+    chipsC: { [chip(s, "손을 들어 자기 생각을 자주 발표함")]: "2026-11-17" },
     memos: { C: [{ id: "m1", date: "2026-05-12", text: "박민이 다쳤을 때 김지수가 보건실에 데려감" }, { id: "m2", date: "", text: "발표 자신감이 늘어난 점 강조" }] },
   };
   const r = buildRequest(s, "S01", "C", {});
@@ -38,7 +38,7 @@ test("C: 칩은 날짜 있는 관찰 기록이 되고, 실명은 요청에 들�
   expect(r.student.grade).toBe(5);
   expect(r.student.logs).toEqual([
     { date: "2026-05-12", text: "S02이 다쳤을 때 S01가 보건실에 데려감" },
-    { date: "2026-11-17", text: "칩: 발표 잘함" },
+    { date: "2026-11-17", text: "칩: 손을 들어 자기 생각을 자주 발표함" },
   ]);
   expect(r.student.memo).toContain("발표 자신감이 늘어난 점 강조");
   expect(r.student.memo).toContain("분량: 보통");
@@ -52,7 +52,7 @@ test("반 전체 추가 지시는 memo 끝에 붙는다", () => {
   const s = base();
   s.settings.classNote = "~임 위주로";
   s.settings.length = "short";
-  s.inputs.S01 = { chipsC: { [chip(s, "집중 잘함")]: "2026-11-17" } };
+  s.inputs.S01 = { chipsC: { [chip(s, "수업 내내 바른 자세로 집중함")]: "2026-11-17" } };
   const memo = buildRequest(s, "S01", "C", {}).student.memo;
   expect(memo).toBe("분량: 짧게\n~임 위주로");
 });
@@ -95,18 +95,18 @@ test("D: 행발 칩과 교과 등급을 함께 쓰고, 지침이 있으면 extra
   s.settings.hasSchoolGuide = true;
   s.settings.reportGuideText = "학부모 대상, 300자";
   s.inputs.S01 = {
-    chipsC: { [chip(s, "발표 잘함")]: "2026-11-17" },
+    chipsC: { [chip(s, "손을 들어 자기 생각을 자주 발표함")]: "2026-11-17" },
     grades: { "수학|6수01-01|나눗셈": { level: "g", date: "2026-07-01" } },
   };
   const r = buildRequest(s, "S01", "D", {});
   expect(r.opts).toEqual({ maxChars: 300, hasSchoolGuide: true });
-  expect(r.student.logs.map((l) => l.text)).toEqual(["수학 평가: 나눗셈 (6수01-01) — 잘함: 능숙함", "칩: 발표 잘함"]);
+  expect(r.student.logs.map((l) => l.text)).toEqual(["수학 평가: 나눗셈 (6수01-01) — 잘함: 능숙함", "칩: 손을 들어 자기 생각을 자주 발표함"]);
   expect(r.extraDocs).toContain("학부모 대상, 300자");
 });
 
 test("usedOpenings는 같은 항목 다른 학생 초안의 첫 어절, otherDrafts는 이 학생의 다른 항목", () => {
   const s = base();
-  s.inputs.S01 = { chipsC: { [chip(s, "발표 잘함")]: "2026-11-17" } };
+  s.inputs.S01 = { chipsC: { [chip(s, "손을 들어 자기 생각을 자주 발표함")]: "2026-11-17" } };
   s.drafts = {
     S01: { C: { draft: "내 행발" }, "A:국어": { draft: "국어 초안" }, "A:수학": { draft: "[보충 필요: 수학]" }, "B:진로활동": { draft: "진로 초안" } },
     S02: { C: { draft: "수업 시간에 적극적" } },
@@ -129,7 +129,7 @@ test("기록은 날짜순, 날짜 없는 것은 뒤로", () => {
 
 test("findSameMaterial: 칩이 같은 학생을 묶고, 메모를 더하면 풀린다", () => {
   const s = base();
-  const id = chip(s, "발표 잘함");
+  const id = chip(s, "손을 들어 자기 생각을 자주 발표함");
   s.inputs.S01 = { chipsC: { [id]: "2026-11-17" } };
   s.inputs.S03 = { chipsC: { [id]: "2026-11-10" } };
   expect(findSameMaterial(s, "C", {})).toEqual([["S01", "S03"]]);

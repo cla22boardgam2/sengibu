@@ -6,7 +6,7 @@ import { draftKeyOf, findSameMaterial } from "../lib/materials.js";
 import { sectionReadiness, studentStatus } from "../lib/progress.js";
 import { Button, EmptyHint } from "../components/ui.jsx";
 import StudentList from "./work/StudentList.jsx";
-import StudentInput, { inputActions } from "./work/StudentInput.jsx";
+import StudentInput, { inputActions, chipActions } from "./work/StudentInput.jsx";
 import DraftPane from "./work/DraftPane.jsx";
 import BatchBar from "./work/BatchBar.jsx";
 
@@ -118,7 +118,7 @@ export default function Work({ focus, active }) {
         <StudentList students={students} statuses={statuses} selected={st.pseudoId} onSelect={setPid} />
         <div className="bg-white rounded-2xl shadow-sm ring-1 ring-slate-100 p-4 overflow-auto min-h-0">
           <StudentInput {...{ state, st, section, opts, memoKey, acts, rows, actions, goTo, setSection }}
-            sameText={group ? sameMaterialText(group, students) : ""} ui={{ openGroups, setOpenGroups }} />
+            sameText={group ? sameMaterialText(group, students) : ""} ui={{ openGroups, setOpenGroups, chipEdit: chipActions(update) }} />
         </div>
         <div className="bg-white rounded-2xl shadow-sm ring-1 ring-slate-100 p-4 overflow-auto min-h-0">
           {canWork ? (

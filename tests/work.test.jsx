@@ -25,7 +25,7 @@ function seed({ names = ["김지수", "박민", "이하늘"], key = "", chips = 
   s.settings.geminiKey = key;
   s.evalPlan = plan;
   if (chips) {
-    const id = s.chips.C.find((c) => c.text === "발표 잘함").id;
+    const id = s.chips.C.find((c) => c.text === "손을 들어 자기 생각을 자주 발표함").id;
     for (const st of s.students) s.inputs[st.pseudoId] = { chipsC: { [id]: "2026-11-17" } };
   }
   s.drafts = drafts;
@@ -79,7 +79,7 @@ describe("한 번에 한 학생", () => {
     open("행발");
     expect(screen.getByRole("button", { name: "1번 김지수 · 입력 없음" })).toBeTruthy();
     openGroup("학습");
-    fireEvent.click(within(input()).getByRole("button", { name: "발표 잘함" }));
+    fireEvent.click(within(input()).getByRole("button", { name: "손을 들어 자기 생각을 자주 발표함" }));
     expect(screen.getByRole("button", { name: "1번 김지수 · 입력됨" })).toBeTruthy();
   });
 });
@@ -88,12 +88,12 @@ describe("입력", () => {
   test("행발 칩: 분류를 펼쳐 고르면 오늘 날짜로 저장되고 위 요약에 보이며, 요약에서 빼면 빠진다", () => {
     seed();
     open("행발");
-    expect(within(input()).queryByRole("button", { name: "발표 잘함" })).toBeNull();
+    expect(within(input()).queryByRole("button", { name: "손을 들어 자기 생각을 자주 발표함" })).toBeNull();
     openGroup("학습");
-    fireEvent.click(within(input()).getByRole("button", { name: "발표 잘함" }));
-    const id = loadState().chips.C.find((c) => c.text === "발표 잘함").id;
+    fireEvent.click(within(input()).getByRole("button", { name: "손을 들어 자기 생각을 자주 발표함" }));
+    const id = loadState().chips.C.find((c) => c.text === "손을 들어 자기 생각을 자주 발표함").id;
     expect(loadState().inputs.S01.chipsC[id]).toBe(todayStr());
-    fireEvent.click(within(input()).getByRole("button", { name: "발표 잘함 빼기" }));
+    fireEvent.click(within(input()).getByRole("button", { name: "손을 들어 자기 생각을 자주 발표함 빼기" }));
     expect(loadState().inputs.S01.chipsC[id]).toBeUndefined();
   });
 
@@ -102,7 +102,7 @@ describe("입력", () => {
     open("행발");
     openGroup("학습");
     fireEvent.click(screen.getByRole("button", { name: "다음 학생 →" }));
-    expect(within(input()).getByRole("button", { name: "발표 잘함" })).toBeTruthy();
+    expect(within(input()).getByRole("button", { name: "손을 들어 자기 생각을 자주 발표함" })).toBeTruthy();
   });
 
   test("재료가 같은 학생을 알려 주고, 메모를 더하면 알림이 사라진다", () => {
@@ -226,7 +226,7 @@ describe("생성", () => {
   });
 });
 
-const reviewSeed = (draft, names) => seed({ names, drafts: { S01: { C: { draft, evidence: [{ sentence: "가", source: "칩: 발표 잘함" }], warnings: ["근거 약함"], missing: [], reviewed: false } } } });
+const reviewSeed = (draft, names) => seed({ names, drafts: { S01: { C: { draft, evidence: [{ sentence: "가", source: "칩: 손을 들어 자기 생각을 자주 발표함" }], warnings: ["근거 약함"], missing: [], reviewed: false } } } });
 
 describe("검토", () => {
   test("체크해야 복사가 켜지고, 고치면 다시 꺼진다", () => {
@@ -343,4 +343,53 @@ test("재료가 같은 학생이 많으면 번호를 다 늘어놓지 않고 몇
   seed({ names: ["가", "나", "다", "라", "마"], chips: true });
   open("행발");
   expect(screen.getByText("이 학생을 포함해 5명의 재료(등급·칩·메모)가 똑같아요. 이대로면 문장이 비슷해질 수 있어요. 이 학생만의 모습을 메모로 한 줄 더하면 달라져요.")).toBeTruthy();
+});
+
+describe("행발 칩 두 단계 + 바로 고치기", () => {
+  const CHIP = "손을 들어 자기 생각을 자주 발표함";
+
+  test("큰 분류를 펼치면 소분류 이름 아래에 칩이 보인다", () => {
+    seed();
+    open("행발");
+    expect(within(input()).getAllByRole("button", { name: /^(학습|인성|관계|생활|재능|노력할 점)/ }).length).toBeGreaterThanOrEqual(6);
+    openGroup("학습");
+    const sub = within(input()).getByRole("group", { name: "학습 · 발표·표현" });
+    expect(within(sub).getByRole("button", { name: CHIP })).toBeTruthy();
+  });
+
+  test("칩 편집: 이름 고치기, 지우기(고른 학생 수를 알리고 확인), 소분류에 칩 더하기", () => {
+    seed({ chips: true });
+    let asked = "";
+    window.confirm = (m) => { asked = m; return true; };
+    open("행발");
+    openGroup("학습");
+    fireEvent.click(within(input()).getByRole("button", { name: "칩 편집" }));
+    const id = loadState().chips.C.find((c) => c.text === CHIP).id;
+    fireEvent.change(within(input()).getByLabelText(`칩 이름: ${CHIP}`), { target: { value: "발표를 즐겨 함" } });
+    expect(loadState().chips.C.find((c) => c.id === id).text).toBe("발표를 즐겨 함");
+
+    fireEvent.click(within(input()).getByRole("button", { name: "발표를 즐겨 함 지우기" }));
+    expect(asked).toContain("3명");
+    expect(loadState().chips.C.find((c) => c.id === id)).toBeUndefined();
+
+    const add = within(input()).getByLabelText("학습 · 발표·표현에 칩 추가");
+    fireEvent.change(add, { target: { value: "모둠 발표를 도맡아 함" } });
+    fireEvent.keyDown(add, { key: "Enter" });
+    expect(loadState().chips.C.find((c) => c.text === "모둠 발표를 도맡아 함")).toMatchObject({ group: "학습", sub: "발표·표현", negative: false });
+
+    fireEvent.click(within(input()).getByRole("button", { name: "편집 끝" }));
+    expect(within(input()).getByRole("button", { name: "모둠 발표를 도맡아 함" })).toBeTruthy();
+  });
+
+  test("이미 있는 문구는 다시 더하지 않는다", () => {
+    seed();
+    open("행발");
+    openGroup("학습");
+    fireEvent.click(within(input()).getByRole("button", { name: "칩 편집" }));
+    const n = loadState().chips.C.length;
+    const add = within(input()).getByLabelText("학습 · 발표·표현에 칩 추가");
+    fireEvent.change(add, { target: { value: CHIP } });
+    fireEvent.keyDown(add, { key: "Enter" });
+    expect(loadState().chips.C.length).toBe(n);
+  });
 });
