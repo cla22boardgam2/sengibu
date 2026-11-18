@@ -11,6 +11,7 @@ export default function BatchBar({ state, stateRef, update, section, opts, keyNa
   const [skipExisting, setSkipExisting] = useState(true);
   const [run, setRun] = useState(null); // { label, total, done, status, scrubbed, running, remaining, section, opts, key }
   const [note, setNote] = useState("");
+  const [groupSize, setGroupSize] = useState(5); // 한 요청에 몇 명 (무료 한도의 요청 횟수를 아낀다)
   const ctrl = useRef(null);
 
   const hasDraft = (pid) => !!state.drafts[pid]?.[keyName]?.draft;
@@ -33,6 +34,7 @@ export default function BatchBar({ state, stateRef, update, section, opts, keyNa
       section: job.section,
       opts: job.opts,
       signal: ctrl.current.signal,
+      groupSize,
       onStatus: (status) => set({ status }),
       onResult: (pid, result) => {
         stateRef.current = saveDraft(stateRef.current, pid, job.key, result);
@@ -43,7 +45,7 @@ export default function BatchBar({ state, stateRef, update, section, opts, keyNa
       },
     });
     set(out.pausedAt
-      ? { running: false, remaining: pids.slice(pids.indexOf(out.pausedAt)) }
+      ? { running: false, remaining: out.remaining?.length ? out.remaining : pids.slice(pids.indexOf(out.pausedAt)) }
       : { running: false, remaining: null, status: "다 썼어요. 학생을 넘기며 검토해 주세요." });
   };
 
@@ -64,6 +66,13 @@ export default function BatchBar({ state, stateRef, update, section, opts, keyNa
               </Button>
             )}
             {running && <Button variant="ghost" onClick={() => ctrl.current?.abort()}>멈춤</Button>}
+            <label className="flex items-center gap-1.5 text-stone-600">
+              한 요청에
+              <select aria-label="API 한 번에 몇 명" className="border border-stone-300 rounded-lg px-2 py-1 text-sm"
+                value={groupSize} disabled={running} onChange={(e) => setGroupSize(Number(e.target.value))}>
+                {[1, 5, 10].map((n) => <option key={n} value={n}>{n}명</option>)}
+              </select>
+            </label>
             {!running && run?.remaining && (
               <>
                 <Button onClick={() => start(run.remaining, run)}>이어서 하기</Button>

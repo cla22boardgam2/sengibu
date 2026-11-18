@@ -70,7 +70,7 @@ export function buildCopyPrompt(req) {
   return `${COPY_HEADER}${system}\n\n---\n\n${user}`;
 }
 
-export async function callGemini({ key, model, system, user, fetchImpl = fetch }) {
+export async function callGemini({ key, model, system, user, fetchImpl = fetch, maxOutputTokens = 8192 }) {
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`;
   const res = await fetchImpl(url, {
     method: "POST",
@@ -79,7 +79,7 @@ export async function callGemini({ key, model, system, user, fetchImpl = fetch }
       systemInstruction: { parts: [{ text: system }] },
       contents: [{ role: "user", parts: [{ text: user }] }],
       // 생각(thinking) 토큰도 출력 한도에 들어가는 모델이 있어 넉넉히 둔다
-      generationConfig: { responseMimeType: "application/json", maxOutputTokens: 8192 },
+      generationConfig: { responseMimeType: "application/json", maxOutputTokens },
     }),
   });
   if (!res.ok) {
@@ -120,41 +120,67 @@ function retryDelayMs(err, attempt) {
 
 const isFatal = (err) => [400, 401, 403, 404].includes(err?.status);
 
-export async function runBatch({ getState, pseudoIds, section, opts, onResult, onStatus = () => {}, signal, deps = {} }) {
+// groupSize > 1 이면 여러 학생을 한 요청으로 보낸다(무료 한도의 요청 횟수를 아낀다).
+// 돌려주는 값: done(쓴 학생), pausedAt(멈춘 학생), remaining(이어서 할 학생)
+export async function runBatch({ getState, pseudoIds, section, opts, onResult, onStatus = () => {}, signal, deps = {}, groupSize = 1 }) {
   const sleep = deps.sleep ?? ((ms) => new Promise((r) => setTimeout(r, ms)));
+  const total = pseudoIds.length;
   const done = [];
-  for (let i = 0; i < pseudoIds.length; i++) {
-    const pid = pseudoIds[i];
-    if (signal?.aborted) return { done, pausedAt: pid };
+  const queue = [...pseudoIds];
+  const retried = new Set();
+  const failed = [];
+  const stop = (pid, rest) => ({ done, pausedAt: pid, remaining: [...rest, ...failed] });
+
+  while (queue.length) {
+    const group = queue.slice(0, Math.max(1, groupSize));
+    if (signal?.aborted) return stop(group[0], queue);
     let attempt = 0;
     for (;;) {
       attempt += 1;
       try {
-        onStatus(`${i + 1} / ${pseudoIds.length} 쓰는 중`);
-        const result = await generateOne(getState(), pid, section, opts, deps);
-        onResult(pid, result);
-        done.push(pid);
+        if (groupSize <= 1) {
+          onStatus(`${done.length + 1} / ${total} 쓰는 중`);
+          const result = await generateOne(getState(), group[0], section, opts, deps);
+          onResult(group[0], result);
+          done.push(group[0]);
+        } else {
+          onStatus(`${done.length + 1}~${Math.min(total, done.length + group.length)} / ${total} 쓰는 중 (${group.length}명 한 번에)`);
+          const { results, missing } = await generateGroup(getState(), group, section, opts, deps);
+          for (const pid of group) if (results[pid]) { onResult(pid, results[pid]); done.push(pid); }
+          for (const pid of missing) {
+            if (retried.has(pid)) failed.push(pid);
+            else { retried.add(pid); queue.push(pid); }
+          }
+        }
+        queue.splice(0, group.length);
         break;
       } catch (err) {
         if (isFatal(err)) {
           onStatus(`API 키나 모델 이름을 확인해 주세요 (${err.status}: ${err.message})`);
-          return { done, pausedAt: pid };
+          return stop(group[0], queue);
         }
         if (attempt >= MAX_TRIES) {
-          onStatus(`여러 번 실패해서 멈췄어요. 잠시 뒤 [이어서 하기]를 눌러 주세요. (${err.message})`);
-          return { done, pausedAt: pid };
+          onStatus(err.badAnswer
+            ? `AI 답을 읽지 못해 멈췄어요. 한 번에 쓰는 학생 수를 줄여 [이어서 하기]를 눌러 주세요.`
+            : `여러 번 실패해서 멈췄어요. 잠시 뒤 [이어서 하기]를 눌러 주세요. (${err.message})`);
+          return stop(group[0], queue);
         }
-        const wait = retryDelayMs(err, attempt);
+        const wait = err.badAnswer ? 0 : retryDelayMs(err, attempt);
         onStatus(err.status === 429
           ? `무료 사용량 한도에 걸렸어요. ${Math.round(wait / 1000)}초 기다렸다가 이어 갈게요.`
+          : err.badAnswer ? "AI 답이 잘렸거나 형식이 달라 다시 받아요."
           : `연결이 불안정해요. ${Math.round(wait / 1000)}초 뒤 다시 해 볼게요.`);
-        await sleep(wait);
-        if (signal?.aborted) return { done, pausedAt: pid };
+        if (wait) await sleep(wait);
+        if (signal?.aborted) return stop(group[0], queue);
       }
     }
-    if (i < pseudoIds.length - 1) await sleep(MIN_GAP_MS);
+    if (queue.length) await sleep(MIN_GAP_MS);
   }
-  return { done, pausedAt: null };
+  if (failed.length) {
+    onStatus(`AI 답에 빠진 학생이 있어 멈췄어요. [이어서 하기]로 다시 써 주세요.`);
+    return { done, pausedAt: failed[0], remaining: failed };
+  }
+  return { done, pausedAt: null, remaining: [] };
 }
 
 // ── 여러 명 한 번에 (복사·붙여넣기 방식) ──
@@ -169,12 +195,48 @@ export function batchHeader(n) {
 `;
 }
 
-export function buildBatchCopyPrompt(reqs) {
+function batchBody(reqs) {
   const first = reqs[0];
-  const system = buildSystemPrompt(first.section, first.opts);
   const attach = `[첨부: 2026학년도 학교생활기록부 기재요령(초등학교) 발췌]\n${first.guideText}\n\n[첨부: 참고 자료]\n${first.extraDocs || "없음"}`;
   const blocks = reqs.map((r, i) => `=== 학생 ${i + 1} / ${reqs.length} ===\n${buildUserText(r.section, r.opts, r.student)}`);
-  return `${batchHeader(reqs.length)}${system}\n\n---\n\n${attach}\n\n${blocks.join("\n\n")}`;
+  return `${attach}\n\n${blocks.join("\n\n")}`;
+}
+
+export function buildBatchCopyPrompt(reqs) {
+  const system = buildSystemPrompt(reqs[0].section, reqs[0].opts);
+  return `${batchHeader(reqs.length)}${system}\n\n---\n\n${batchBody(reqs)}`;
+}
+
+// API로 여러 명을 한 요청에: 지침은 시스템에 그대로, 묶음 안내와 학생 블록은 본문에
+export async function generateGroup(state, pseudoIds, section, opts, deps = {}) {
+  const results = {};
+  const reqs = [];
+  for (const pid of pseudoIds) {
+    const req = buildRequest(state, pid, section, opts);
+    if (req.empty) results[pid] = { ...emptyResult(pid, section), idMismatch: false, scrubbed: 0 };
+    else reqs.push(req);
+  }
+  if (reqs.length === 0) return { results, missing: [] };
+  const raw = await callGemini({
+    key: state.settings.geminiKey,
+    model: state.settings.geminiModel?.trim() || DEFAULT_GEMINI_MODEL,
+    system: buildSystemPrompt(section, reqs[0].opts),
+    user: `${batchHeader(reqs.length)}${batchBody(reqs)}`,
+    fetchImpl: deps.fetchImpl ?? ((...a) => fetch(...a)),
+    maxOutputTokens: 32768,
+  });
+  const ids = reqs.map((r) => r.student.pseudoId);
+  const out = parseBatchResponse(raw, ids, section);
+  if (!out.ok) {
+    const err = new Error("AI 답을 JSON으로 읽지 못했어요");
+    err.badAnswer = true;
+    throw err;
+  }
+  for (const r of reqs) {
+    const res = out.results[r.student.pseudoId];
+    if (res) results[r.student.pseudoId] = { ...res, scrubbed: r.scrubbed };
+  }
+  return { results, missing: ids.filter((id) => !out.results[id]) };
 }
 
 function extractItems(raw) {

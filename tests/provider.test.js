@@ -128,7 +128,7 @@ describe("runBatch", () => {
       getState: h.getState, pseudoIds: ["S01", "S02", "S03"], section: "C", opts: {},
       onResult: h.onResult, onStatus: () => {}, deps: { fetchImpl: h.fetchImpl, sleep: async (ms) => waits.push(ms) },
     });
-    expect(out).toEqual({ done: ["S01", "S02", "S03"], pausedAt: null });
+    expect(out).toMatchObject({ done: ["S01", "S02", "S03"], pausedAt: null });
     expect(waits).toContain(20000);
     expect(h.sent[1]).toContain("[같은 반 기존 초안의 시작 표현] 발표를\n");
     expect(h.sent[3]).toContain("[같은 반 기존 초안의 시작 표현] 발표를, 수업에서\n");
@@ -140,7 +140,7 @@ describe("runBatch", () => {
       getState: h.getState, pseudoIds: ["S01", "S02", "S03"], section: "C", opts: {},
       onResult: h.onResult, onStatus: () => {}, deps: { fetchImpl: h.fetchImpl, sleep: async () => {} },
     });
-    expect(out).toEqual({ done: ["S01"], pausedAt: "S02" });
+    expect(out).toMatchObject({ done: ["S01"], pausedAt: "S02" });
     expect(h.results.S01.draft).toBe("가");
   });
 
@@ -164,7 +164,7 @@ describe("runBatch", () => {
       onResult: (pid, r) => { h.onResult(pid, r); ctrl.abort(); }, onStatus: () => {},
       deps: { fetchImpl: h.fetchImpl, sleep: async () => {} },
     });
-    expect(out).toEqual({ done: ["S01"], pausedAt: "S02" });
+    expect(out).toMatchObject({ done: ["S01"], pausedAt: "S02" });
   });
 });
 
@@ -212,5 +212,83 @@ describe("여러 명 한 번에 (복사 방식)", () => {
 
   test("parseBatchResponse: JSON이 아니면 ok:false", () => {
     expect(parseBatchResponse("죄송해요", ["S01"], "C")).toMatchObject({ ok: false, results: {} });
+  });
+});
+
+describe("runBatch 여러 명 한 요청 (groupSize)", () => {
+  function harness(replies) {
+    let s = state();
+    const results = {};
+    const bodies = [];
+    const fetchImpl = async (url, init) => {
+      bodies.push(JSON.parse(init.body));
+      const r = replies.shift();
+      if (r instanceof Error) throw r;
+      return r;
+    };
+    const onResult = (pid, res) => {
+      results[pid] = res;
+      s = { ...s, drafts: { ...s.drafts, [pid]: { C: { draft: res.draft } } } };
+    };
+    return { getState: () => s, results, bodies, fetchImpl, onResult };
+  }
+  const arr = (...ids) => geminiReply(ids.map((id) => ({ student_id: id, draft: `${id} 글.` })));
+
+  test("학생 3명을 2명씩 묶어 2번만 부르고, 지침은 시스템에, 묶음 안내는 본문에", async () => {
+    const h = harness([arr("S01", "S02"), arr("S03")]);
+    const out = await runBatch({
+      getState: h.getState, pseudoIds: ["S01", "S02", "S03"], section: "C", opts: {}, groupSize: 2,
+      onResult: h.onResult, onStatus: () => {}, deps: { fetchImpl: h.fetchImpl, sleep: async () => {} },
+    });
+    expect(out).toMatchObject({ done: ["S01", "S02", "S03"], pausedAt: null, remaining: [] });
+    expect(h.bodies).toHaveLength(2);
+    const sys = h.bodies[0].systemInstruction.parts[0].text;
+    expect(sys).toContain("행동특성 및 종합의견 (행발)");
+    const user = h.bodies[0].contents[0].parts[0].text;
+    expect(user).toContain("학생 2명");
+    expect(user).toContain("[학생 ID] S02");
+    expect(user).not.toContain("[학생 ID] S03");
+    expect(user).not.toMatch(/김지수|박민|이하늘/);
+    expect(h.results.S03.draft).toBe("S03 글.");
+    // 두 번째 묶음은 앞 묶음 초안의 첫 어절을 피하도록 받는다
+    expect(h.bodies[1].contents[0].parts[0].text).toContain("[같은 반 기존 초안의 시작 표현] S01, S02");
+    expect(h.bodies[0].generationConfig.maxOutputTokens).toBeGreaterThanOrEqual(16384);
+  });
+
+  test("답에서 빠진 학생은 맨 뒤에서 한 번 더 부르고, 그래도 없으면 그 학생들만 남기고 멈춘다", async () => {
+    const h = harness([arr("S01"), geminiReply([]), ]);
+    const out = await runBatch({
+      getState: h.getState, pseudoIds: ["S01", "S02"], section: "C", opts: {}, groupSize: 2,
+      onResult: h.onResult, onStatus: () => {}, deps: { fetchImpl: h.fetchImpl, sleep: async () => {} },
+    });
+    expect(h.bodies).toHaveLength(2);
+    expect(h.bodies[1].contents[0].parts[0].text).toContain("[학생 ID] S02");
+    expect(out).toMatchObject({ done: ["S01"], pausedAt: "S02", remaining: ["S02"] });
+  });
+
+  test("JSON이 아닌 답은 재시도 대상이고, 3번 실패하면 그 묶음에서 멈춘다", async () => {
+    const bad = { ok: true, status: 200, json: async () => ({ candidates: [{ content: { parts: [{ text: "잘린 답 [{" }] } }] }) };
+    const h = harness([bad, bad, bad]);
+    const msgs = [];
+    const out = await runBatch({
+      getState: h.getState, pseudoIds: ["S01", "S02"], section: "C", opts: {}, groupSize: 2,
+      onResult: h.onResult, onStatus: (m) => msgs.push(m), deps: { fetchImpl: h.fetchImpl, sleep: async () => {} },
+    });
+    expect(h.bodies).toHaveLength(3);
+    expect(out).toMatchObject({ done: [], pausedAt: "S01", remaining: ["S01", "S02"] });
+    expect(msgs.join(" ")).toContain("한 번에 쓰는 학생 수를 줄여");
+  });
+
+  test("입력이 없는 학생은 묶음에서 빼고 보충 필요로 바로 저장", async () => {
+    const h = harness([arr("S02")]);
+    const s0 = h.getState();
+    s0.inputs.S01 = {};
+    await runBatch({
+      getState: h.getState, pseudoIds: ["S01", "S02"], section: "C", opts: {}, groupSize: 2,
+      onResult: h.onResult, onStatus: () => {}, deps: { fetchImpl: h.fetchImpl, sleep: async () => {} },
+    });
+    expect(h.bodies).toHaveLength(1);
+    expect(h.bodies[0].contents[0].parts[0].text).not.toContain("[학생 ID] S01");
+    expect(h.results.S01.draft).toBe("[보충 필요: 관찰 기록 없음]");
   });
 });
