@@ -33,13 +33,19 @@ export default function App() {
     <AppStateProvider goTo={goTo}>
       <div className="min-h-screen">
         <SaveWarning />
-        <header className="border-b bg-white sticky top-0 z-10">
-          <div className="mx-auto max-w-7xl px-4 py-3 flex flex-wrap items-center gap-2">
-            <h1 className="font-bold text-emerald-800 mr-4">생기부 초안 도우미</h1>
-            <nav aria-label="메뉴" className="flex flex-wrap gap-1">
+        <header className="bg-white/90 backdrop-blur border-b border-indigo-100 shadow-sm sticky top-0 z-10">
+          <div className="mx-auto max-w-7xl px-4 py-3 flex flex-wrap items-center gap-x-6 gap-y-2">
+            <button type="button" onClick={() => goTo("홈")} className="flex items-center gap-2.5 text-left" aria-label="홈으로">
+              <span aria-hidden="true" className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-500 text-white flex items-center justify-center text-lg shadow-sm">✍️</span>
+              <span>
+                <span className="block font-bold text-indigo-950 leading-tight">생기부 초안 도우미</span>
+                <span className="block text-xs text-slate-500">칩만 고르면 AI가 생기부 초안을 써 드려요</span>
+              </span>
+            </button>
+            <nav aria-label="메뉴" className="flex flex-wrap gap-1 sm:ml-auto">
               {TABS.map((t) => (
                 <button key={t} type="button" onClick={() => goTo(t)} aria-current={tab === t ? "page" : undefined}
-                  className={`px-3 py-1.5 rounded-full text-sm ${tab === t ? "bg-emerald-700 text-white" : "text-stone-600 hover:bg-stone-100"}`}>
+                  className={`px-3.5 py-1.5 rounded-full text-sm font-medium transition-colors ${tab === t ? "bg-indigo-600 text-white shadow-sm" : "text-slate-600 hover:bg-indigo-50 hover:text-indigo-700"}`}>
                   {t}
                 </button>
               ))}

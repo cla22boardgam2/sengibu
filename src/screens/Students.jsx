@@ -29,7 +29,7 @@ export default function Students() {
           onChange={(e) => setText(e.target.value)}
         />
         <div className="flex items-center justify-between mt-2">
-          <p className="text-xs text-stone-500">이름은 이 브라우저에만 저장돼요. AI에는 S01 같은 가명만 보내요.</p>
+          <p className="text-xs text-slate-500">이름은 이 브라우저에만 저장돼요. AI에는 S01 같은 가명만 보내요.</p>
           <Button onClick={add} disabled={!text.trim()}>학생 추가</Button>
         </div>
       </Card>
@@ -40,7 +40,7 @@ export default function Students() {
         ) : (
           <table className="w-full text-sm">
             <thead>
-              <tr className="text-left text-stone-500 border-b">
+              <tr className="text-left text-slate-500 border-b">
                 <th className="py-2 w-16">번호</th>
                 <th className="w-20">가명</th>
                 <th>이름</th>
@@ -51,7 +51,7 @@ export default function Students() {
               {state.students.map((st) => (
                 <tr key={st.pseudoId} className="border-b last:border-0">
                   <td className="py-2">{st.number}</td>
-                  <td className="font-mono text-stone-500">{st.pseudoId}</td>
+                  <td className="font-mono text-slate-500">{st.pseudoId}</td>
                   <td>{st.name}</td>
                   <td className="text-right">
                     <Button variant="danger" onClick={() => remove(st)}>삭제</Button>

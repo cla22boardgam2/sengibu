@@ -2,4 +2,9 @@
 @tailwind components;
 @tailwind utilities;
 
-body { font-family: "Pretendard", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif; }
+body {
+  font-family: "Pretendard Variable", "Pretendard", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+  background: linear-gradient(135deg, #f0f7ff 0%, #eef0ff 50%, #f7f2ff 100%) fixed;
+  color: #1f2937;
+  -webkit-font-smoothing: antialiased;
+}

@@ -3,7 +3,7 @@ import { useApp } from "../state.jsx";
 
 // 앱 안 사용 설명서. 버튼 이름은 화면에 실제로 보이는 글자와 맞춘다.
 function B({ children }) {
-  return <span className="inline-block rounded-md border border-stone-300 bg-stone-50 px-1.5 py-0.5 text-[0.85em] font-medium text-stone-800 whitespace-nowrap">{children}</span>;
+  return <span className="inline-block rounded-md border border-slate-300 bg-slate-50 px-1.5 py-0.5 text-[0.85em] font-medium text-slate-800 whitespace-nowrap">{children}</span>;
 }
 
 function Steps({ items }) {
@@ -11,8 +11,8 @@ function Steps({ items }) {
     <ol className="space-y-2">
       {items.map((t, i) => (
         <li key={i} className="flex gap-3">
-          <span aria-hidden="true" className="w-6 h-6 shrink-0 rounded-full bg-emerald-700 text-white text-xs font-semibold flex items-center justify-center mt-0.5">{i + 1}</span>
-          <div className="text-sm leading-relaxed text-stone-700">{t}</div>
+          <span aria-hidden="true" className="w-6 h-6 shrink-0 rounded-full bg-indigo-700 text-white text-xs font-semibold flex items-center justify-center mt-0.5">{i + 1}</span>
+          <div className="text-sm leading-relaxed text-slate-700">{t}</div>
         </li>
       ))}
     </ol>
@@ -20,7 +20,7 @@ function Steps({ items }) {
 }
 
 function Tip({ children, tone = "info" }) {
-  const cls = tone === "warn" ? "bg-amber-50 border-amber-200 text-amber-900" : "bg-emerald-50 border-emerald-200 text-emerald-900";
+  const cls = tone === "warn" ? "bg-amber-50 border-amber-200 text-amber-900" : "bg-indigo-50 border-indigo-200 text-indigo-900";
   return <div className={`border rounded-lg px-3 py-2 text-sm mt-3 ${cls}`}>{children}</div>;
 }
 
@@ -38,8 +38,8 @@ const SECTIONS = [
 
 function Section({ id, title, children }) {
   return (
-    <section id={`guide-${id}`} className="bg-white border border-stone-200 rounded-xl p-5 mb-4 scroll-mt-20">
-      <h2 className="font-semibold text-stone-800 text-lg mb-3">{title}</h2>
+    <section id={`guide-${id}`} className="bg-white rounded-2xl shadow-sm ring-1 ring-slate-100 p-5 mb-4 scroll-mt-20">
+      <h2 className="font-semibold text-slate-800 text-lg mb-3">{title}</h2>
       {children}
     </section>
   );
@@ -55,26 +55,26 @@ export default function Guide({ focus }) {
   }, [focus]);
   const T = Object.fromEntries(SECTIONS);
   const link = (tab, label, value) => (
-    <button type="button" className="text-emerald-700 underline" onClick={() => goTo(tab, value)}>{label}</button>
+    <button type="button" className="text-indigo-700 underline" onClick={() => goTo(tab, value)}>{label}</button>
   );
 
   return (
     <section aria-label="사용법" ref={root}>
-      <div className="bg-white border border-stone-200 rounded-xl p-5 mb-4">
-        <h1 className="font-bold text-xl text-stone-800">사용법</h1>
-        <p className="text-sm text-stone-500 mt-1">처음 쓰시는 선생님은 위에서부터 차례대로 읽어 보세요. 10분이면 첫 초안까지 갈 수 있어요.</p>
+      <div className="bg-white rounded-2xl shadow-sm ring-1 ring-slate-100 p-5 mb-4">
+        <h1 className="font-bold text-xl text-slate-800">사용법</h1>
+        <p className="text-sm text-slate-500 mt-1">처음 쓰시는 선생님은 위에서부터 차례대로 읽어 보세요. 10분이면 첫 초안까지 갈 수 있어요.</p>
         <nav aria-label="사용법 차례" className="mt-3 grid sm:grid-cols-3 gap-1.5">
           {SECTIONS.map(([id, title], i) => (
             <button key={id} type="button" onClick={() => jump(id)}
-              className="text-left text-sm rounded-lg border border-stone-200 px-3 py-1.5 hover:bg-stone-50">
-              <span className="text-stone-400 mr-1.5">{i + 1}</span>{title}
+              className="text-left text-sm rounded-lg border border-slate-200 px-3 py-1.5 hover:bg-slate-50">
+              <span className="text-slate-400 mr-1.5">{i + 1}</span>{title}
             </button>
           ))}
         </nav>
       </div>
 
       <Section id="start" title={T.start}>
-        <p className="text-sm text-stone-600 mb-3">맨 위 <B>홈</B>의 "시작 준비" 목록을 위에서부터 채우면 돼요. 각 줄의 <B>하러 가기</B>를 누르면 그 자리로 바로 가요.</p>
+        <p className="text-sm text-slate-600 mb-3">맨 위 <B>홈</B>의 "시작 준비" 목록을 위에서부터 채우면 돼요. 각 줄의 <B>하러 가기</B>를 누르면 그 자리로 바로 가요.</p>
         <Steps items={[
           <><b>학생 명단</b> (필수): <B>학생</B> 메뉴에서 명렬표의 이름 칸을 복사해 붙여넣고 <B>학생 추가</B>. 학생마다 S01, S02 같은 가명이 붙어요. AI에는 이 가명만 보내요.</>,
           <><b>기재요령 발췌</b> (필수): 기재 길라잡이에서 평어·창체·행발 쓰는 법과 유의사항 부분만 복사해 붙여넣어요. AI가 가장 먼저 따르는 기준이에요. 너무 길면 AI 사용량이 늘어나니 꼭 필요한 부분만 넣어요.</>,
@@ -86,22 +86,22 @@ export default function Guide({ focus }) {
       </Section>
 
       <Section id="ways" title={T.ways}>
-        <p className="text-sm text-stone-600 mb-3">AI가 문장을 쓰게 하는 방법은 세 가지예요. 모두 돈이 들지 않아요.</p>
+        <p className="text-sm text-slate-600 mb-3">AI가 문장을 쓰게 하는 방법은 세 가지예요. 모두 돈이 들지 않아요.</p>
         <div className="overflow-x-auto">
           <table className="w-full text-sm border-collapse">
             <thead>
-              <tr className="text-left text-stone-500 border-b border-stone-200">
+              <tr className="text-left text-slate-500 border-b border-slate-200">
                 <th className="py-2 pr-3 font-medium">방법</th><th className="py-2 pr-3 font-medium">이럴 때 좋아요</th><th className="py-2 pr-3 font-medium">아쉬운 점</th>
               </tr>
             </thead>
             <tbody className="align-top">
-              <tr className="border-b border-stone-100">
+              <tr className="border-b border-slate-100">
                 <td className="py-2 pr-3 font-medium">① 무료 API 키로 자동</td>
                 <td className="py-2 pr-3">버튼 한 번으로 반 전체를 알아서 써 줘요.</td>
                 <td className="py-2 pr-3">무료 한도가 적어서 하루에 많이 쓰면 막혀요.</td>
               </tr>
-              <tr className="border-b border-stone-100">
-                <td className="py-2 pr-3 font-medium">② 여러 명 한 번에 복사 <span className="text-emerald-700">(추천)</span></td>
+              <tr className="border-b border-slate-100">
+                <td className="py-2 pr-3 font-medium">② 여러 명 한 번에 복사 <span className="text-indigo-700">(추천)</span></td>
                 <td className="py-2 pr-3">쓰시는 AI 채팅(Gemini·ChatGPT·Claude)에 붙여넣어요. 유료 구독 중이면 한도 걱정이 거의 없어요.</td>
                 <td className="py-2 pr-3">붙여넣기를 몇 번 해야 해요. 25명이면 3번쯤.</td>
               </tr>
@@ -120,7 +120,7 @@ export default function Guide({ focus }) {
       </Section>
 
       <Section id="api" title={T.api}>
-        <h3 className="font-medium text-stone-800 mb-2">키 만들기 (처음 한 번)</h3>
+        <h3 className="font-medium text-slate-800 mb-2">키 만들기 (처음 한 번)</h3>
         <Steps items={[
           <>{link("설정", "설정", "ai")} → <b>AI 연결 (무료)</b>의 <B>무료 API 키 만들기 (Google AI Studio)</B> 링크를 눌러요.</>,
           <>구글 계정으로 로그인해요. 학교 계정에서 막히면 개인 Gmail로 하세요.</>,
@@ -128,7 +128,7 @@ export default function Guide({ focus }) {
           <>나온 키(AIza로 시작)를 복사해 앱의 <b>API 키</b> 칸에 붙여넣어요. 저장 버튼은 없어요. 넣는 즉시 이 브라우저에만 저장돼요.</>,
         ]} />
         <Tip tone="warn">키는 비밀번호처럼 다뤄 주세요. 다른 사람에게 보내거나 채팅에 붙여넣지 마세요. 백업 파일에도 들어가지 않아요.</Tip>
-        <h3 className="font-medium text-stone-800 mt-5 mb-2">반 전체 쓰기</h3>
+        <h3 className="font-medium text-slate-800 mt-5 mb-2">반 전체 쓰기</h3>
         <Steps items={[
           <><B>작업</B>에서 항목(교과 평어·창체·행발·통지표)을 골라요.</>,
           <>학생마다 칩·등급·메모를 골라요. 아래 6번 "학생별로 입력하기"를 보세요.</>,
@@ -140,7 +140,7 @@ export default function Guide({ focus }) {
       </Section>
 
       <Section id="batch" title={T.batch}>
-        <p className="text-sm text-stone-600 mb-3">API 키 없이, 선생님이 쓰시는 AI 채팅으로 여러 학생을 한 번에 써요. API 키가 들어 있으면 작업 화면 위쪽의 <B>복사·붙여넣기로 하기</B>를 체크하면 이 칸이 나와요.</p>
+        <p className="text-sm text-slate-600 mb-3">API 키 없이, 선생님이 쓰시는 AI 채팅으로 여러 학생을 한 번에 써요. API 키가 들어 있으면 작업 화면 위쪽의 <B>복사·붙여넣기로 하기</B>를 체크하면 이 칸이 나와요.</p>
         <Steps items={[
           <><B>작업</B>에서 항목을 고르고, 학생들의 칩·등급·메모를 먼저 골라 둬요.</>,
           <>위쪽 "여러 명 한 번에"에서 인원을 골라요. 처음에는 <B>5명</B>이나 <B>10명</B>을 추천해요.</>,
@@ -165,7 +165,7 @@ export default function Guide({ focus }) {
       </Section>
 
       <Section id="input" title={T.input}>
-        <p className="text-sm text-stone-600 mb-3"><B>작업</B> 화면은 세 칸이에요. 왼쪽은 학생 목록, 가운데는 고른 학생 한 명의 입력, 오른쪽은 그 학생의 초안이에요.</p>
+        <p className="text-sm text-slate-600 mb-3"><B>작업</B> 화면은 세 칸이에요. 왼쪽은 학생 목록, 가운데는 고른 학생 한 명의 입력, 오른쪽은 그 학생의 초안이에요.</p>
         <Steps items={[
           <>위에서 항목을 골라요. <b>교과 평어</b>는 교과(국어·수학…)까지, <b>창체</b>는 영역까지 골라요.</>,
           <>가운데에서 입력해요. 교과는 평가요소마다 <B>매잘</B> <B>잘함</B> <B>보통</B> <B>노력</B>, 창체는 참여한 행사와 역할 칩, 행발은 분류(성품·학습·친구…)를 펼쳐 칩을 골라요. 통지표는 따로 고를 것 없이 교과 등급과 행발 칩을 모아 써요.</>,
@@ -173,14 +173,14 @@ export default function Guide({ focus }) {
           <>대부분 같은 등급이면 <B>반 전체 같은 등급 한 번에 주기</B>를 펼쳐 한 번에 고르고, 다른 학생만 따로 바꿔요.</>,
           <><B>다음 학생 →</B>을 누르거나 키보드 → 키로 넘겨요(← 는 이전 학생).</>,
         ]} />
-        <div className="mt-3 text-sm text-stone-700">
+        <div className="mt-3 text-sm text-slate-700">
           <b>학생 목록 기호</b>
           <ul className="mt-1 grid sm:grid-cols-5 gap-1 text-xs">
-            <li><span className="text-stone-400">○</span> 입력 없음</li>
+            <li><span className="text-slate-400">○</span> 입력 없음</li>
             <li><span className="text-sky-600">◐</span> 입력됨</li>
-            <li><span className="text-emerald-600">●</span> 초안 있음</li>
+            <li><span className="text-indigo-600">●</span> 초안 있음</li>
             <li><span className="text-red-600 font-bold">!</span> 보충 필요</li>
-            <li><span className="text-emerald-700 font-bold">✓</span> 검토 완료</li>
+            <li><span className="text-indigo-700 font-bold">✓</span> 검토 완료</li>
           </ul>
         </div>
         <Tip tone="warn">"재료가 똑같아요" 알림은 고른 칩·등급·메모가 다른 학생과 완전히 같다는 뜻이에요. 이대로면 문장이 비슷해질 수 있어요. 그 학생만의 모습을 메모로 한 줄 더하면 달라져요.</Tip>
@@ -217,8 +217,8 @@ export default function Guide({ focus }) {
             ["초안에 S01 같은 글자가 보여요.", "AI가 가명을 문장에 넣은 거예요. 화면에서는 이름으로 바뀌어 보이지만, 생기부 문장에는 이름을 쓰지 않으니 지워 주세요."],
           ].map(([q, a]) => (
             <div key={q}>
-              <dt className="font-medium text-stone-800">Q. {q}</dt>
-              <dd className="text-stone-600 mt-0.5">{a}</dd>
+              <dt className="font-medium text-slate-800">Q. {q}</dt>
+              <dd className="text-slate-600 mt-0.5">{a}</dd>
             </div>
           ))}
         </dl>

@@ -41,8 +41,8 @@ function EvalPlanCard() {
   const subjects = subjectsOf(state.evalPlan);
   return (
     <>
-      <div className="flex items-start justify-between gap-3 mb-2"><p className="text-sm text-stone-500">학교 평가계획서의 표를 양식 칸 순서에 맞춰 옮겨 주세요. 3단계 평가면 '매우잘함' 칸을 비워 두세요.</p><a className="text-sm text-emerald-700 underline whitespace-nowrap" href="./평가계획_양식.xlsx" download>양식 내려받기</a></div>
-      <p className="text-xs text-stone-500 mb-2">칸 순서: 교과 · 영역(단원) · 성취기준 코드 · 평가요소 · 매우잘함 · 잘함 · 보통 · 노력요함</p>
+      <div className="flex items-start justify-between gap-3 mb-2"><p className="text-sm text-slate-500">학교 평가계획서의 표를 양식 칸 순서에 맞춰 옮겨 주세요. 3단계 평가면 '매우잘함' 칸을 비워 두세요.</p><a className="text-sm text-indigo-700 underline whitespace-nowrap" href="./평가계획_양식.xlsx" download>양식 내려받기</a></div>
+      <p className="text-xs text-slate-500 mb-2">칸 순서: 교과 · 영역(단원) · 성취기준 코드 · 평가요소 · 매우잘함 · 잘함 · 보통 · 노력요함</p>
       <div className="flex flex-wrap items-center gap-3 mb-3">
         <label className="text-sm">엑셀 올리기 <input type="file" accept=".xlsx,.xls" onChange={onFile} className="text-sm" aria-label="평가계획 파일 올리기" /></label>
       </div>
@@ -58,7 +58,7 @@ function EvalPlanCard() {
       </div>
       {msg && <div className="mt-2"><Notice tone={msg.tone}>{msg.text}</Notice></div>}
       {subjects.length > 0 && (
-        <p className="text-sm text-stone-600 mt-3">
+        <p className="text-sm text-slate-600 mt-3">
           지금 들어 있는 평가계획: {subjects.map((s) => `${s}(${state.evalPlan.filter((r) => r.subject === s).length})`).join(" · ")}
         </p>
       )}
@@ -72,7 +72,7 @@ function ActivitiesCard() {
     update((s) => ({ ...s, activities: s.activities.map((a) => (a.id === id ? { ...a, ...patch } : a)) }));
   return (
     <>
-      <p className="text-sm text-stone-500 mb-2">학교 교육활동 이름과 짧은 설명이에요. AI는 이 목록에 있는 활동명만 써요.</p>
+      <p className="text-sm text-slate-500 mb-2">학교 교육활동 이름과 짧은 설명이에요. AI는 이 목록에 있는 활동명만 써요.</p>
       <div className="space-y-2">
         {state.activities.map((a) => (
           <div key={a.id} className="grid grid-cols-1 sm:grid-cols-[9rem_10rem_1fr_auto] gap-2">
@@ -98,16 +98,16 @@ function ChipEditor({ chips, onRemove, onAdd, label, negative }) {
   const add = () => { if (text.trim()) { onAdd(text.trim()); setText(""); } };
   return (
     <div className="mb-3">
-      <div className="text-sm font-medium text-stone-700 mb-1">{label}</div>
+      <div className="text-sm font-medium text-slate-700 mb-1">{label}</div>
       <div className="flex flex-wrap gap-1.5 items-center">
         {chips.map((c) => (
-          <span key={c.id} className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs ${negative ? "border-amber-300 bg-amber-50" : "border-stone-300 bg-stone-50"}`}>
+          <span key={c.id} className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs ${negative ? "border-amber-300 bg-amber-50" : "border-slate-300 bg-slate-50"}`}>
             {c.text}
-            <button type="button" aria-label={`${c.text} 칩 빼기`} className="text-stone-400 hover:text-red-600" onClick={() => onRemove(c.id)}>×</button>
+            <button type="button" aria-label={`${c.text} 칩 빼기`} className="text-slate-400 hover:text-red-600" onClick={() => onRemove(c.id)}>×</button>
           </span>
         ))}
         <input
-          className="border border-dashed border-stone-300 rounded-full px-2.5 py-1 text-xs w-28"
+          className="border border-dashed border-slate-300 rounded-full px-2.5 py-1 text-xs w-28"
           placeholder="+ 칩 추가" value={text}
           onChange={(e) => setText(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && add()}
@@ -131,7 +131,7 @@ function ChipsCard() {
       : ({ ...s, chips: { ...s.chips, B: [...s.chips.B, { id: `b-${uid()}`, text }] } }));
   return (
     <>
-      <p className="text-sm text-stone-500 mb-2">선생님 말투에 맞게 더하거나 빼세요. 칩을 빼면 그 칩을 고른 학생의 문장 재료에서도 빠져요.</p>
+      <p className="text-sm text-slate-500 mb-2">선생님 말투에 맞게 더하거나 빼세요. 칩을 빼면 그 칩을 고른 학생의 문장 재료에서도 빠져요.</p>
       {CHIP_GROUPS.map((g) => (
         <ChipEditor key={g} label={`행발 · ${g}`} negative={g === "노력할 점"}
           chips={state.chips.C.filter((c) => c.group === g)} onRemove={removeC} onAdd={addC(g)} />
@@ -145,20 +145,20 @@ const BADGE = {
   필수: "bg-red-50 text-red-700 border-red-200",
   교과: "bg-sky-50 text-sky-700 border-sky-200",
   창체: "bg-violet-50 text-violet-700 border-violet-200",
-  선택: "bg-stone-50 text-stone-500 border-stone-200",
-  고급: "bg-stone-50 text-stone-500 border-stone-200",
+  선택: "bg-slate-50 text-slate-500 border-slate-200",
+  고급: "bg-slate-50 text-slate-500 border-slate-200",
 };
 
 // 접었다 펴는 설정 묶음. 접혀 있어도 내용은 남겨 둔다(입력 중인 글이 사라지지 않게).
 function Fold({ id, title, need, done, open, onToggle, children }) {
   return (
-    <section id={`settings-${id}`} className="bg-white border border-stone-200 rounded-xl mb-3 scroll-mt-20">
+    <section id={`settings-${id}`} className="bg-white rounded-2xl shadow-sm ring-1 ring-slate-100 mb-3 scroll-mt-20">
       <button type="button" aria-expanded={open} aria-controls={`settings-body-${id}`} onClick={onToggle}
         className="w-full flex items-center gap-2 px-5 py-3 text-left">
-        <span className="font-semibold text-stone-800">{title}</span>
+        <span className="font-semibold text-slate-800">{title}</span>
         {need && <span className={`text-[11px] border rounded-full px-2 py-0.5 ${BADGE[need]}`}>{need === "교과" ? "교과 평어에 필요" : need === "창체" ? "창체에 필요" : need}</span>}
-        {done != null && <span className={`text-xs ${done ? "text-emerald-700" : "text-amber-700"}`}>{done ? "✓ 완료" : "아직"}</span>}
-        <span className="ml-auto text-xs text-stone-400">{open ? "접기 ▲" : "펼치기 ▼"}</span>
+        {done != null && <span className={`text-xs ${done ? "text-indigo-700" : "text-amber-700"}`}>{done ? "✓ 완료" : "아직"}</span>}
+        <span className="ml-auto text-xs text-slate-400">{open ? "접기 ▲" : "펼치기 ▼"}</span>
       </button>
       <div id={`settings-body-${id}`} hidden={!open} className="px-5 pb-5">{children}</div>
     </section>
@@ -196,14 +196,14 @@ export default function Settings({ focus }) {
     <div ref={root}>
       {fold("guide", "기재요령 발췌", "필수", done.guide, (
         <>
-          <p className="text-sm text-stone-500 mb-2">기재 길라잡이에서 평어·창체·행발 기재 방법과 유의사항 부분을 복사해 붙여넣으세요. AI가 가장 먼저 따르는 기준이에요.</p>
+          <p className="text-sm text-slate-500 mb-2">기재 길라잡이에서 평어·창체·행발 기재 방법과 유의사항 부분을 복사해 붙여넣으세요. AI가 가장 먼저 따르는 기준이에요.</p>
           <textarea className={`${inputCls} h-40`} value={st.guideText} onChange={(e) => set({ guideText: e.target.value })} aria-label="기재요령 발췌" />
         </>
       ))}
 
       {fold("limits", "글자 수 상한 (바이트)", "필수", done.limits, (
         <>
-          <p className="text-sm text-stone-500 mb-2">나이스 기준 바이트 상한이에요. 기재 길라잡이에서 확인해 넣어 주세요. 한글 1자는 3바이트예요.</p>
+          <p className="text-sm text-slate-500 mb-2">나이스 기준 바이트 상한이에요. 기재 길라잡이에서 확인해 넣어 주세요. 한글 1자는 3바이트예요.</p>
           <div className="grid sm:grid-cols-3 gap-3">
             {[["A", "교과 평어"], ["B", "창체 (영역별)"], ["C", "행발"]].map(([k, l]) => (
               <label key={k} className="text-sm">{l}
@@ -220,7 +220,7 @@ export default function Settings({ focus }) {
 
       {fold("ai", "AI 연결 (무료)", "선택", done.ai, (
         <>
-          <p className="text-sm text-stone-500 mb-2">Google AI Studio에서 무료 API 키를 만들어 붙여넣으세요. 카드 등록은 필요 없어요. 키가 없으면 복사·붙여넣기 방식으로 쓸 수 있어요.</p>
+          <p className="text-sm text-slate-500 mb-2">Google AI Studio에서 무료 API 키를 만들어 붙여넣으세요. 카드 등록은 필요 없어요. 키가 없으면 복사·붙여넣기 방식으로 쓸 수 있어요.</p>
           <div className="grid sm:grid-cols-2 gap-3">
             <label className="text-sm">API 키
               <input type="password" autoComplete="off" className={inputCls} value={st.geminiKey}
@@ -233,8 +233,8 @@ export default function Settings({ focus }) {
             </label>
           </div>
           <p className="text-sm mt-2">
-            <a className="text-emerald-700 underline" href="https://aistudio.google.com/apikey" target="_blank" rel="noreferrer">무료 API 키 만들기 (Google AI Studio)</a>
-            <span className="text-stone-500"> · 키는 이 브라우저에만 저장되고 백업 파일에도 들어가지 않아요.</span>
+            <a className="text-indigo-700 underline" href="https://aistudio.google.com/apikey" target="_blank" rel="noreferrer">무료 API 키 만들기 (Google AI Studio)</a>
+            <span className="text-slate-500"> · 키는 이 브라우저에만 저장되고 백업 파일에도 들어가지 않아요.</span>
           </p>
         </>
       ))}
@@ -255,7 +255,7 @@ export default function Settings({ focus }) {
               <div className="flex gap-1 mt-1">
                 {[["short", "짧게"], ["normal", "보통"], ["long", "길게"]].map(([k, l]) => (
                   <button key={k} type="button" onClick={() => set({ length: k })}
-                    className={`px-3 py-1.5 rounded-lg text-sm border ${st.length === k ? "bg-emerald-700 text-white border-emerald-700" : "border-stone-300"}`}>{l}</button>
+                    className={`px-3 py-1.5 rounded-lg text-sm border ${st.length === k ? "bg-indigo-700 text-white border-indigo-700" : "border-slate-300"}`}>{l}</button>
                 ))}
               </div>
             </div>

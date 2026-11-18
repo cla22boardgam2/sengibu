@@ -67,18 +67,18 @@ export default function BatchCopy({ state, update, section, opts, keyName, input
   };
 
   return (
-    <div className="border-t border-stone-100 pt-2 space-y-2">
+    <div className="border-t border-slate-100 pt-2 space-y-2">
       <div className="flex flex-wrap items-center gap-2 text-sm">
-        <span className="font-medium text-stone-700">여러 명 한 번에</span>
-        <label className="text-stone-600 flex items-center gap-1">
+        <span className="font-medium text-slate-700">여러 명 한 번에</span>
+        <label className="text-slate-600 flex items-center gap-1">
           <span className="sr-only">한 번에 몇 명</span>
-          <select aria-label="한 번에 몇 명" className="border border-stone-300 rounded-lg px-2 py-1 text-sm" value={size}
+          <select aria-label="한 번에 몇 명" className="border border-slate-300 rounded-lg px-2 py-1 text-sm" value={size}
             onChange={(e) => { setSize(e.target.value); setOffset(0); }}>
             {SIZES.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
           </select>
         </label>
         <Button onClick={copy} disabled={chunk.length === 0}>{chunk.length}명 프롬프트 복사</Button>
-        <span className="text-xs text-stone-500">
+        <span className="text-xs text-slate-500">
           {targets.length === 0 ? "쓸 학생이 없어요 (입력이 없거나 모두 초안이 있어요)" : `${start + 1}~${start + chunk.length}번째 · 대상 ${targets.length}명`}
         </span>
       </div>

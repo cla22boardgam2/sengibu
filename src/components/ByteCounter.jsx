@@ -11,7 +11,7 @@ export default function ByteCounter({ text, state, section }) {
   const n = count(text);
   const over = max != null && n > max;
   return (
-    <span data-testid="byte-counter" className={`text-xs tabular-nums ${over ? "text-red-600 font-semibold" : "text-stone-500"}`}>
+    <span data-testid="byte-counter" className={`text-xs tabular-nums ${over ? "text-red-600 font-semibold" : "text-slate-500"}`}>
       {n.toLocaleString()}{max != null ? ` / ${max}` : ""} {unit}{over ? " · 넘침" : ""}{max == null ? " (상한 미확인)" : ""}
     </span>
   );

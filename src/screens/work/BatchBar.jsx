@@ -56,7 +56,7 @@ export default function BatchBar({ state, stateRef, update, section, opts, keyNa
 
   const running = run?.running;
   return (
-    <div className="bg-white border border-stone-200 rounded-xl px-3 py-2 space-y-2">
+    <div className="bg-white rounded-2xl shadow-sm ring-1 ring-slate-100 px-3 py-2 space-y-2">
       <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
         {auto ? (
           <>
@@ -66,9 +66,9 @@ export default function BatchBar({ state, stateRef, update, section, opts, keyNa
               </Button>
             )}
             {running && <Button variant="ghost" onClick={() => ctrl.current?.abort()}>멈춤</Button>}
-            <label className="flex items-center gap-1.5 text-stone-600">
+            <label className="flex items-center gap-1.5 text-slate-600">
               한 요청에
-              <select aria-label="API 한 번에 몇 명" className="border border-stone-300 rounded-lg px-2 py-1 text-sm"
+              <select aria-label="API 한 번에 몇 명" className="border border-slate-300 rounded-lg px-2 py-1 text-sm"
                 value={groupSize} disabled={running} onChange={(e) => setGroupSize(Number(e.target.value))}>
                 {[1, 5, 10].map((n) => <option key={n} value={n}>{n}명</option>)}
               </select>
@@ -81,24 +81,24 @@ export default function BatchBar({ state, stateRef, update, section, opts, keyNa
             )}
           </>
         ) : (
-          <span className="text-stone-600">
+          <span className="text-slate-600">
             {hasKey ? "복사·붙여넣기 방식이에요." : "API 키 없이 복사·붙여넣기로 써요. 아래에서 여러 명을 한 번에, 오른쪽에서 한 명씩."}
-            {!hasKey && <button type="button" className="underline text-emerald-700 ml-1" onClick={() => goTo("설정", "ai")}>AI 연결하기</button>}
+            {!hasKey && <button type="button" className="underline text-indigo-700 ml-1" onClick={() => goTo("설정", "ai")}>AI 연결하기</button>}
           </span>
         )}
-        <label className="flex items-center gap-1.5 text-stone-600">
+        <label className="flex items-center gap-1.5 text-slate-600">
           <input type="checkbox" checked={skipExisting} onChange={(e) => setSkipExisting(e.target.checked)} />
           초안 있는 학생 건너뛰기
         </label>
         {hasKey && (
-          <label className="flex items-center gap-1.5 text-stone-600">
+          <label className="flex items-center gap-1.5 text-slate-600">
             <input type="checkbox" checked={forceCopy} onChange={(e) => setForceCopy(e.target.checked)} />
             복사·붙여넣기로 하기
           </label>
         )}
-        <button type="button" className="text-xs underline text-stone-500" onClick={() => goTo("사용법", "ways")}>어떤 방법이 좋을까요?</button>
+        <button type="button" className="text-xs underline text-slate-500" onClick={() => goTo("사용법", "ways")}>어떤 방법이 좋을까요?</button>
         <span className="ml-auto flex items-center gap-2">
-          {note && <span className="text-xs text-stone-500">{note}</span>}
+          {note && <span className="text-xs text-slate-500">{note}</span>}
           <Button variant="ghost" onClick={copyAll} disabled={reviewedSt.length === 0}>검토 완료 {reviewedSt.length}명 모두 복사</Button>
         </span>
       </div>
@@ -106,12 +106,12 @@ export default function BatchBar({ state, stateRef, update, section, opts, keyNa
       {run && (
         <div>
           <div className="flex items-center gap-3">
-            <div className="h-2 flex-1 bg-stone-100 rounded-full overflow-hidden">
-              <div className="h-full bg-emerald-600 transition-all" style={{ width: `${run.total ? (run.done / run.total) * 100 : 0}%` }} />
+            <div className="h-2 flex-1 bg-slate-100 rounded-full overflow-hidden">
+              <div className="h-full bg-indigo-600 transition-all" style={{ width: `${run.total ? (run.done / run.total) * 100 : 0}%` }} />
             </div>
             <span className="text-sm tabular-nums">{run.done} / {run.total} 완료</span>
           </div>
-          <p className="text-xs text-stone-600 mt-1">
+          <p className="text-xs text-slate-600 mt-1">
             {run.label !== label && <b>{run.label}: </b>}{run.status}
           </p>
           {run.scrubbed > 0 && <div className="mt-1"><Notice tone="warn">실명 {run.scrubbed}곳을 가명으로 바꿔 보냈어요.</Notice></div>}

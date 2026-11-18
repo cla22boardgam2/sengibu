@@ -17,7 +17,7 @@ function Pills({ items, value, onChange, small, label }) {
     <div role="tablist" aria-label={label} className="flex flex-wrap gap-1">
       {items.map(([k, text]) => (
         <button key={k} role="tab" type="button" aria-selected={value === k} onClick={() => onChange(k)}
-          className={`rounded-full ${small ? "px-2.5 py-1 text-xs" : "px-3 py-1.5 text-sm"} ${value === k ? "bg-stone-800 text-white" : "bg-white border border-stone-300 text-stone-700"}`}>
+          className={`rounded-full ${small ? "px-2.5 py-1 text-xs" : "px-3 py-1.5 text-sm"} ${value === k ? "bg-slate-800 text-white" : "bg-white border border-slate-300 text-slate-700"}`}>
           {text}
         </button>
       ))}
@@ -116,22 +116,22 @@ export default function Work({ focus, active }) {
 
       <div className="flex-1 min-h-0 grid gap-3 lg:grid-cols-[11rem_minmax(0,1fr)_minmax(0,1fr)]">
         <StudentList students={students} statuses={statuses} selected={st.pseudoId} onSelect={setPid} />
-        <div className="bg-white border border-stone-200 rounded-xl p-4 overflow-auto min-h-0">
+        <div className="bg-white rounded-2xl shadow-sm ring-1 ring-slate-100 p-4 overflow-auto min-h-0">
           <StudentInput {...{ state, st, section, opts, memoKey, acts, rows, actions, goTo, setSection }}
             sameText={group ? sameMaterialText(group, students) : ""} ui={{ openGroups, setOpenGroups }} />
         </div>
-        <div className="bg-white border border-stone-200 rounded-xl p-4 overflow-auto min-h-0">
+        <div className="bg-white rounded-2xl shadow-sm ring-1 ring-slate-100 p-4 overflow-auto min-h-0">
           {canWork ? (
             <DraftPane {...{ state, st, section, opts, keyName, update, auto }} />
           ) : (
-            <p className="text-sm text-stone-400">평가계획을 넣으면 초안을 쓸 수 있어요.</p>
+            <p className="text-sm text-slate-400">평가계획을 넣으면 초안을 쓸 수 있어요.</p>
           )}
         </div>
       </div>
 
       <div className="shrink-0 flex items-center justify-between gap-2">
         <Button variant="ghost" onClick={() => move(-1)} disabled={idx === 0}>← 이전 학생</Button>
-        <span className="text-xs text-stone-500">{idx + 1} / {students.length} · 키보드 ← → 로도 넘길 수 있어요</span>
+        <span className="text-xs text-slate-500">{idx + 1} / {students.length} · 키보드 ← → 로도 넘길 수 있어요</span>
         <Button variant="ghost" onClick={() => move(1)} disabled={idx === students.length - 1}>다음 학생 →</Button>
       </div>
     </div>

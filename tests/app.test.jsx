@@ -10,7 +10,7 @@ import { runBatch } from "../src/lib/provider.js";
 import App from "../src/App.jsx";
 import { emptyState } from "../src/lib/defaults.js";
 import { addStudents } from "../src/lib/students.js";
-import { saveState } from "../src/lib/store.js";
+import { saveState, loadState } from "../src/lib/store.js";
 
 beforeEach(() => {
   localStorage.clear();
@@ -106,4 +106,31 @@ test("홈과 작업 화면에서 사용법의 해당 부분으로 바로 간다"
   fireEvent.click(screen.getByRole("button", { name: "작업" }));
   fireEvent.click(screen.getByRole("button", { name: "어떤 방법이 좋을까요?" }));
   expect(screen.getByRole("region", { name: "사용법" }).closest("[hidden]")).toBeNull();
+});
+
+test("홈 디자인: 제목, 큰 항목 카드(할 수 있는 일 목록 + 바로 시작), 머리글 설명", () => {
+  render(<App />);
+  expect(screen.getByText("칩만 고르면 AI가 생기부 초안을 써 드려요")).toBeTruthy();
+  expect(screen.getByRole("heading", { name: "어떤 기록을 쓸까요?" })).toBeTruthy();
+  const card = screen.getByRole("region", { name: "행발 카드" });
+  expect(within(card).getByRole("heading", { name: "행동특성 및 종합의견" })).toBeTruthy();
+  expect(within(card).getAllByRole("listitem").length).toBeGreaterThanOrEqual(3);
+  expect(within(card).getByRole("button", { name: "행발 작업하기" }).textContent).toContain("바로 시작");
+});
+
+test("필수 준비가 끝나면 체크리스트는 항목 카드 아래로 내려간다", () => {
+  const s = loadState();
+  s.settings.byteLimits = { A: 1500, B: 1500, C: 1500 };
+  saveState(s);
+  render(<App />);
+  const cards = screen.getByRole("heading", { name: "어떤 기록을 쓸까요?" });
+  const check = screen.getByText("시작 준비");
+  expect(cards.compareDocumentPosition(check) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+});
+
+test("필수 준비가 남아 있으면 체크리스트가 맨 위", () => {
+  render(<App />);
+  const cards = screen.getByRole("heading", { name: "어떤 기록을 쓸까요?" });
+  const check = screen.getByText("시작 준비");
+  expect(check.compareDocumentPosition(cards) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
 });

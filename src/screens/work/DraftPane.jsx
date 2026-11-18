@@ -91,11 +91,11 @@ function GenerateBox({ state, st, section, opts, keyName, update, auto, entry })
     setMsg({ tone: "info", text: "저장했어요. 위에서 확인하고 검토 완료를 눌러 주세요." });
   };
   return (
-    <div className="space-y-2 border border-stone-200 rounded-lg p-3">
-      <div className="text-xs text-stone-500">복사·붙여넣기로 쓰기: 프롬프트를 Claude·ChatGPT·Gemini 새 채팅에 붙여넣고, 받은 답을 아래에 넣으세요.</div>
+    <div className="space-y-2 border border-slate-200 rounded-lg p-3">
+      <div className="text-xs text-slate-500">복사·붙여넣기로 쓰기: 프롬프트를 Claude·ChatGPT·Gemini 새 채팅에 붙여넣고, 받은 답을 아래에 넣으세요.</div>
       <div className="flex flex-wrap items-center gap-2">
         <Button onClick={copy}>프롬프트 복사</Button>
-        <button type="button" className="text-xs underline text-stone-500" onClick={() => setShowPrompt((v) => !v)}>
+        <button type="button" className="text-xs underline text-slate-500" onClick={() => setShowPrompt((v) => !v)}>
           {showPrompt ? "프롬프트 접기" : "프롬프트 보기"}
         </button>
       </div>
@@ -123,14 +123,14 @@ export default function DraftPane({ state, st, section, opts, keyName, update, a
   return (
     <section aria-label={`${st.number}번 학생 초안`} className="space-y-3">
       <div className="flex items-center justify-between gap-2">
-        <h2 className="font-semibold text-stone-800">초안</h2>
+        <h2 className="font-semibold text-slate-800">초안</h2>
         {entry && <ByteCounter text={shown} state={state} section={section} />}
       </div>
 
       {entry ? (
         <div>
           <textarea aria-label="초안" value={shown} onChange={(e) => edit(e.target.value)}
-            className="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm h-40 focus:outline-none focus:ring-2 focus:ring-emerald-600" />
+            className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm h-40 focus:outline-none focus:ring-2 focus:ring-indigo-600" />
           {hasNeed(entry.draft) && <div className="mt-1 border border-red-200 rounded-lg p-2 bg-red-50/40"><Highlighted text={shown} /></div>}
           {hasStudentId(entry.draft) && (
             <div className="mt-2"><Notice tone="error">초안에 학생 ID(S01 같은 가명)가 들어 있어요. 화면에는 이름으로 보여요. 생기부 문장에는 이름을 쓰지 않으니 지워 주세요.</Notice></div>
@@ -142,13 +142,13 @@ export default function DraftPane({ state, st, section, opts, keyName, update, a
               검토 완료
             </label>
             <div className="flex items-center gap-2">
-              {note && <span className="text-xs text-stone-500">{note}</span>}
+              {note && <span className="text-xs text-slate-500">{note}</span>}
               <Button onClick={copy} disabled={!entry.reviewed} title={entry.reviewed ? "" : "검토 완료를 눌러야 복사할 수 있어요"}>복사</Button>
             </div>
           </div>
         </div>
       ) : (
-        <p className="text-sm text-stone-400">아직 초안이 없어요.</p>
+        <p className="text-sm text-slate-400">아직 초안이 없어요.</p>
       )}
 
       <GenerateBox {...{ state, st, section, opts, keyName, update, auto, entry }} />
@@ -163,18 +163,18 @@ export default function DraftPane({ state, st, section, opts, keyName, update, a
           )}
           {entry.missing?.length > 0 && (
             <div>
-              <div className="font-semibold text-stone-700 mb-1">보충하면 좋을 관찰</div>
+              <div className="font-semibold text-slate-700 mb-1">보충하면 좋을 관찰</div>
               <ul className="list-disc pl-4 space-y-0.5">{entry.missing.map((w, i) => <li key={i}>{w}</li>)}</ul>
             </div>
           )}
           {entry.evidence?.length > 0 && (
             <div>
-              <div className="font-semibold text-stone-700 mb-1">문장별 근거</div>
+              <div className="font-semibold text-slate-700 mb-1">문장별 근거</div>
               <ul className="space-y-1.5">
                 {entry.evidence.map((e, i) => (
-                  <li key={i} className="border-l-2 border-emerald-300 pl-2">
+                  <li key={i} className="border-l-2 border-indigo-300 pl-2">
                     <div>{toRealNames(e.sentence, state.students)}</div>
-                    <div className="text-stone-500">← {toRealNames(e.source, state.students)}</div>
+                    <div className="text-slate-500">← {toRealNames(e.source, state.students)}</div>
                   </li>
                 ))}
               </ul>
