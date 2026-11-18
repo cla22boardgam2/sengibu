@@ -34,7 +34,8 @@ export default function Home() {
 
   return (
     <>
-      <Card title="시작 준비" desc="필수 3가지를 먼저 채우세요. 그다음 쓰려는 항목에 필요한 것만 채우면 돼요.">
+      <Card title="시작 준비" desc="필수 3가지를 먼저 채우세요. 그다음 쓰려는 항목에 필요한 것만 채우면 돼요."
+        right={<Button variant="ghost" onClick={() => goTo("사용법")}>사용법 보기</Button>}>
         <ol className="divide-y divide-stone-100">
           {steps.map((s, i) => (
             <li key={s.id} className={`flex items-center gap-3 py-2.5 ${next?.id === s.id ? "bg-emerald-50/60 -mx-2 px-2 rounded-lg" : ""}`}>

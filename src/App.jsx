@@ -5,9 +5,10 @@ import Students from "./screens/Students.jsx";
 import Work from "./screens/Work.jsx";
 import Backup from "./screens/Backup.jsx";
 import Settings from "./screens/Settings.jsx";
+import Guide from "./screens/Guide.jsx";
 
-const SCREENS = { 홈: Home, 학생: Students, 작업: Work, 백업: Backup, 설정: Settings };
-export const TABS = ["홈", "학생", "작업", "백업", "설정"];
+const SCREENS = { 홈: Home, 학생: Students, 작업: Work, 백업: Backup, 설정: Settings, 사용법: Guide };
+export const TABS = ["홈", "학생", "작업", "백업", "설정", "사용법"];
 
 function SaveWarning() {
   const { saveFailed } = useApp();
@@ -35,7 +36,7 @@ export default function App() {
         <header className="border-b bg-white sticky top-0 z-10">
           <div className="mx-auto max-w-7xl px-4 py-3 flex flex-wrap items-center gap-2">
             <h1 className="font-bold text-emerald-800 mr-4">생기부 초안 도우미</h1>
-            <nav className="flex flex-wrap gap-1">
+            <nav aria-label="메뉴" className="flex flex-wrap gap-1">
               {TABS.map((t) => (
                 <button key={t} type="button" onClick={() => goTo(t)} aria-current={tab === t ? "page" : undefined}
                   className={`px-3 py-1.5 rounded-full text-sm ${tab === t ? "bg-emerald-700 text-white" : "text-stone-600 hover:bg-stone-100"}`}>

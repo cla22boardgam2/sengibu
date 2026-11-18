@@ -96,6 +96,7 @@ export default function BatchBar({ state, stateRef, update, section, opts, keyNa
             복사·붙여넣기로 하기
           </label>
         )}
+        <button type="button" className="text-xs underline text-stone-500" onClick={() => goTo("사용법", "ways")}>어떤 방법이 좋을까요?</button>
         <span className="ml-auto flex items-center gap-2">
           {note && <span className="text-xs text-stone-500">{note}</span>}
           <Button variant="ghost" onClick={copyAll} disabled={reviewedSt.length === 0}>검토 완료 {reviewedSt.length}명 모두 복사</Button>

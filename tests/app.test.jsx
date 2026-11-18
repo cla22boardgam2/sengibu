@@ -39,8 +39,8 @@ test("반 전체 생성 중 다른 탭에 갔다 와도 멈춤 버튼이 남고,
 
 test("메뉴는 홈·학생·작업·백업·설정 글자 탭이고, 앱은 홈에서 시작한다", () => {
   render(<App />);
-  const nav = screen.getByRole("navigation");
-  expect([...nav.querySelectorAll("button")].map((b) => b.textContent)).toEqual(["홈", "학생", "작업", "백업", "설정"]);
+  const nav = screen.getByRole("navigation", { name: "메뉴" });
+  expect([...nav.querySelectorAll("button")].map((b) => b.textContent)).toEqual(["홈", "학생", "작업", "백업", "설정", "사용법"]);
   expect(screen.getByText("시작 준비").closest("[hidden]")).toBeNull();
 });
 
@@ -87,4 +87,23 @@ test("처음 연 사람: 홈 체크리스트만 보고 학생을 넣고 행발 �
   fireEvent.change(screen.getByLabelText("답 붙여넣기"), { target: { value: '{"student_id":"S01","draft":"발표를 즐김."}' } });
   fireEvent.click(screen.getByRole("button", { name: "답 저장" }));
   expect(screen.getByLabelText("초안").value).toBe("발표를 즐김.");
+});
+
+test("사용법: 차례에서 AI 쓰는 세 가지 방법과 단계별 설명을 보여 준다", () => {
+  render(<App />);
+  fireEvent.click(screen.getByRole("button", { name: "사용법" }));
+  const guide = screen.getByRole("region", { name: "사용법" });
+  for (const h of ["처음 준비", "AI로 쓰는 세 가지 방법", "무료 API 키로 자동 쓰기", "여러 명 한 번에 복사하기", "한 명씩 복사하기", "검토하고 나이스에 옮기기", "자주 묻는 질문"]) {
+    expect(within(guide).getByRole("heading", { name: h })).toBeTruthy();
+  }
+  expect(within(guide).getByRole("navigation", { name: "사용법 차례" })).toBeTruthy();
+});
+
+test("홈과 작업 화면에서 사용법의 해당 부분으로 바로 간다", () => {
+  render(<App />);
+  fireEvent.click(screen.getByRole("button", { name: "사용법 보기" }));
+  expect(screen.getByRole("region", { name: "사용법" }).closest("[hidden]")).toBeNull();
+  fireEvent.click(screen.getByRole("button", { name: "작업" }));
+  fireEvent.click(screen.getByRole("button", { name: "어떤 방법이 좋을까요?" }));
+  expect(screen.getByRole("region", { name: "사용법" }).closest("[hidden]")).toBeNull();
 });
